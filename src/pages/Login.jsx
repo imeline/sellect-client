@@ -1,11 +1,13 @@
 import {useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
+import useAuthStore from "../store/authStore.jsx";
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +25,8 @@ function Login() {
       });
       if (response.ok) {
         const data = await response.json();
-        navigate('/dashboard', {state: data});
+        login(data.user, data.accessToken);
+        navigate('/', {state: data});
       } else {
         const errData = await response.json();
         setError(errData.message || '로그인에 실패했습니다.');
