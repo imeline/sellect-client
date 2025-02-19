@@ -1,33 +1,18 @@
 import { useState } from "react";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
-export default function SearchBar({ apiBaseUrl }) {
+export default function SearchBar() {
   const [keyword, setKeyword] = useState("");
+  const navigate = useNavigate();
 
-  const handleSearch = async () => {
-    if (!keyword.trim()) {
-      console.warn("검색어가 비어 있습니다.");
-      return;
-    }
-    if (!apiBaseUrl) {
-      console.error("API_BASE_URL이 설정되지 않았습니다.");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-          `${apiBaseUrl}/api/v1/search/products?keyword=${encodeURIComponent(keyword)}`
-      );
-      if (!response.ok) {
-        throw new Error(`검색 요청 실패: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log("검색 결과:", data);
-    } catch (error) {
-      console.error("검색 요청 중 오류 발생:", error);
-    }
+  // ✅ 검색 실행: 키워드만 전달 & 페이지 이동
+  const handleSearch = () => {
+    if (!keyword.trim()) return; // 빈 검색어 방지
+    navigate(`/products?keyword=${encodeURIComponent(keyword)}`);
   };
 
+  // ✅ 엔터 키 입력 시 검색 실행
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault(); // 기본 엔터 이벤트 방지
