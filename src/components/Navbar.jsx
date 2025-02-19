@@ -1,10 +1,11 @@
-import { Link } from 'react-router-dom';
-import { ShoppingCartIcon, HeartIcon, UserIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import useAuthStore from '../store/authStore';
+import { Link } from "react-router-dom";
+import { ShoppingCartIcon, HeartIcon, UserIcon } from "@heroicons/react/24/outline";
+import useAuthStore from "../store/authStore";
+import SearchBar from "./SearchBar.jsx";
 
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // 환경 변수 불러오기
 
-function Navbar() {
-
+export default function Navbar() {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const logout = useAuthStore((state) => state.logout);
 
@@ -17,16 +18,7 @@ function Navbar() {
             </Link>
 
             {/* Search Bar */}
-            <div className="hidden md:block flex-1 max-w-md mx-12">
-              <div className="relative">
-                <input
-                    type="text"
-                    placeholder="검색어를 입력하세요"
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                />
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              </div>
-            </div>
+            <SearchBar apiBaseUrl={VITE_API_BASE_URL} />
 
             {/* Navigation Links */}
             <div className="flex items-center space-x-6">
@@ -61,5 +53,3 @@ function Navbar() {
       </nav>
   );
 }
-
-export default Navbar;
