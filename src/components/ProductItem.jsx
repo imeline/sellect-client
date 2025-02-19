@@ -1,6 +1,8 @@
-import { useState } from "react";
+import {useState} from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function ProductItem({ product }) {
+  const navigate = useNavigate();
   const [uploadedImage, setUploadedImage] = useState(null);
 
   const handleFileUpload = (e) => {
@@ -14,8 +16,15 @@ export default function ProductItem({ product }) {
     // 장바구니 추가 로직
   };
 
+  const goToProductDetail = () => {
+    navigate(`/product/${product.id}`);
+  };
+
   return (
-    <div className="bg-white p-4 rounded-lg shadow-lg text-center">
+    <div
+      className="bg-white p-4 rounded-lg shadow-lg text-center cursor-pointer"
+      onClick={goToProductDetail}
+    >
       <img
         src={uploadedImage || product.image}
         alt={product.name}
@@ -28,7 +37,10 @@ export default function ProductItem({ product }) {
         {'★'.repeat(Math.floor(product.rating))}{'☆'.repeat(5 - Math.floor(product.rating))}
       </div>
       <button
-        onClick={addToCart}
+        onClick={(e) => {
+          e.stopPropagation();
+          addToCart();
+        }}
         className="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md"
       >
         장바구니 추가

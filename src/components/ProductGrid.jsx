@@ -20,7 +20,7 @@ export default function ProductGrid({ filters, sortType, visibleCount, onSortCha
   return (
     <div className="w-3/4 pl-8">
       <header className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-extrabold text-gray-900">상품 리스트</h1>
+        <h1 className="text-3xl font-extrabold text-gray-900">상품</h1>
         <select onChange={(e) => onSortChange(e.target.value)} value={sortType} className="p-2 border rounded">
           <option value="latest-desc">신상품순</option>
           <option value="price-asc">가격 낮은순</option>
@@ -39,7 +39,7 @@ export default function ProductGrid({ filters, sortType, visibleCount, onSortCha
             onClick={onLoadMore}
             className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
           >
-            더 보기
+            더보기
           </button>
         </div>
       )}
