@@ -1,6 +1,8 @@
 // CouponRegisterPage.jsx
 import React, { useState, useEffect } from 'react';
 
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // 환경 변수 불러오기
+
 const CouponRegisterPage = () => {
   const [coupons, setCoupons] = useState([]);
   const [page, setPage] = useState(0);
@@ -11,7 +13,7 @@ const CouponRegisterPage = () => {
   const fetchCoupons = async (currentPage = 0) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8080/api/v1/coupon/actives?page=${currentPage}&size=${size}`, {
+      const response = await fetch(`${VITE_API_BASE_URL}/api/v1/coupon/actives?page=${currentPage}&size=${size}`, {
         credentials: 'include', // 쿠키 인증 필요 시
       });
       if (!response.ok) throw new Error('쿠폰 조회 실패');
@@ -37,8 +39,8 @@ const CouponRegisterPage = () => {
 
   const handleRegisterCoupon = async (couponId) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/coupon/${couponId}/register`, {
-        method: 'POST',
+      const response = await fetch(`${VITE_API_BASE_URL}/api/v1/coupon/register/${couponId}`, {
+        method: 'PUT',
         credentials: 'include',
       });
       if (!response.ok) throw new Error('쿠폰 발급 실패');
@@ -90,7 +92,7 @@ const CouponRegisterPage = () => {
                         <p className="text-sm text-gray-500">만료: {coupon.coupon_info.expiration_date}</p>
                       </div>
                       <button
-                          onClick={() => handleRegisterCoupon(coupon.coupon_info.seller_info.seller_id)} // seller_id를 couponId로 사용 가정
+                          onClick={() => handleRegisterCoupon(coupon.coupon_info.coupon_id)} // seller_id를 couponId로 사용 가정
                           disabled={coupon.is_registered}
                           className={`relative py-2 px-5 rounded-md text-sm font-medium text-white transition-all duration-300 transform hover:scale-105 ${
                               coupon.is_registered
