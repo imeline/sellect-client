@@ -10,6 +10,7 @@ import OrderForm from "./pages/OrderForm.jsx";
 import OrderList from "./pages/OrderList.jsx";
 import OrderDetail from "./pages/OrderDetail.jsx";
 import Favorites from "./pages/Favorites.jsx";
+import CouponRegister from "./pages/CouponRegister.jsx";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/order/form" element={<OrderForm />} />
           <Route path="/order/:id" element={<OrderDetail />} />
           <Route path="/favorites" element={<Favorites />} />
+          <Route path="/coupon" element={<CouponRegister />} />
         </Routes>
       </div>
     </Router>
