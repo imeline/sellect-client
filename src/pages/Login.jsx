@@ -1,4 +1,3 @@
-// src/pages/Login.jsx
 import React, {useEffect, useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -6,8 +5,8 @@ import { useAuth } from '../context/AuthContext.jsx';
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -16,10 +15,10 @@ function Login() {
     e.preventDefault();
     try {
       const response = await fetch(`${VITE_API_BASE_URL}/api/v1/auth/login`, {
-        method: 'POST',
-        credentials: 'include',
+        method: "POST",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email,
@@ -28,22 +27,23 @@ function Login() {
       });
       if (response.ok) {
         const data = await response.json();
-        console.log(data.result.nickname, data.result.role);
+       
         login(data.result.nickname, data.result.role);
         navigate(data.result.role === 'USER' ? '/home' : '/seller', { replace: true });
       } else {
         const errData = await response.json();
-        setError(errData.message || '로그인에 실패했습니다.');
+        setError(errData.message || "로그인에 실패했습니다.");
       }
     } catch (err) {
-      setError('서버 오류로 로그인에 실패했습니다.');
-      console.error('Login error:', err);
+      setError("서버 오류로 로그인에 실패했습니다.");
+      console.error("Login error:", err);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl transform transition-all duration-300 hover:shadow-2xl">
+        {/* 헤더 */}
         <div className="text-center">
           <h2 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">
             로그인
