@@ -1,5 +1,5 @@
-import OrderHeader from "../components/OrderHeader";
-import OrderItemsList from "../components/OrderItemsList";
+import OrderHeader from "../components/order/OrderHeader";
+import OrderItemsList from "../components/order/OrderItemsList";
 
 function OrderList() {
   const orders = [

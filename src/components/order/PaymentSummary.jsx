@@ -7,7 +7,7 @@ function PaymentSummary({ totalPrice, discount, finalPrice }) {
           <span>상품 금액</span>
           <span>{totalPrice.toLocaleString()}원</span>
         </div>
-        <div className="flex justify-between text-sm text-gray-700">
+        <div className="flex justify-between text-sm text-gray-700 mt-1">
           <span>쿠폰 할인</span>
           <span className="text-red-500">-{discount.toLocaleString()}원</span>
         </div>
