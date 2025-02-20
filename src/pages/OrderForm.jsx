@@ -1,6 +1,5 @@
-// src/components/OrderForm.js
 import { useState } from "react";
-import OrderItem from "../components/CartOrderItem";
+import CartOrderItem from "../components/CartOrderItem"; // OrderItem -> CartOrderItem로 변경
 import CouponItem from "../components/CouponItem";
 import PaymentSummary from "../components/PaymentSummary";
 
@@ -9,8 +8,22 @@ function OrderForm() {
   const [showCoupons, setShowCoupons] = useState(false);
 
   const items = [
-    { id: 1, brand: "Nike", name: "Air Max 97", price: 199000, quantity: 2 },
-    { id: 2, brand: "Adidas", name: "Superstar", price: 129000, quantity: 1 },
+    {
+      id: 1,
+      brand: "Nike",
+      product_name: "Air Max 97", // name -> product_name
+      product_price: 199000, // price -> product_price
+      quantity: 2,
+      imageUrl: "https://via.placeholder.com/300", // imageUrl 추가
+    },
+    {
+      id: 2,
+      brand: "Adidas",
+      product_name: "Superstar", // name -> product_name
+      product_price: 129000, // price -> product_price
+      quantity: 1,
+      imageUrl: "https://via.placeholder.com/300", // imageUrl 추가
+    },
   ];
 
   const coupons = [
@@ -19,7 +32,7 @@ function OrderForm() {
   ];
 
   const totalPrice = items.reduce(
-    (acc, item) => acc + item.price * item.quantity,
+    (acc, item) => acc + item.product_price * item.quantity, // price -> product_price
     0
   );
   const discount = coupon ? coupon.discount : 0;
@@ -38,7 +51,7 @@ function OrderForm() {
           <h3 className="text-lg font-semibold text-gray-900">주문 상품</h3>
           <div className="mt-2 space-y-4">
             {items.map((item) => (
-              <OrderItem key={item.id} item={item} />
+              <CartOrderItem key={item.id} item={item} /> // OrderItem -> CartOrderItem로 변경
             ))}
           </div>
         </div>
@@ -74,8 +87,7 @@ function OrderForm() {
           totalPrice={totalPrice}
           discount={discount}
           finalPrice={finalPrice}
-        />{" "}
-        {/* PaymentSummary 추가 */}
+        />
         <div className="mt-6">
           <button className="w-full py-3 px-4 bg-indigo-600 text-white font-bold rounded-md hover:bg-indigo-700 transition">
             결제하기
