@@ -7,6 +7,7 @@ import ProductList from './pages/ProductList.jsx';
 import ProductDetail from './pages/ProductDetail.jsx';
 import Cart from './pages/Cart.jsx';
 import OrderList from './pages/OrderList.jsx';
+import OrderDetail from "./pages/OrderDetail.jsx";
 import Favorites from './pages/Favorites.jsx';
 import CouponRegister from "./pages/CouponRegister.jsx";
 import Profile from "./pages/Profile.jsx";
@@ -26,13 +27,13 @@ function App() {
             <Route path="/product/:id" element={<ProductDetail/>}/>
             <Route path="/cart" element={<Cart/>}/>
             <Route path="/orders" element={<OrderList/>}/>
+            <Route path="/order/form" element={<OrderForm />} />
+            <Route path="/order/:id" element={<OrderDetail />} />
             <Route path="/favorites" element={<Favorites/>}/>
             <Route path="/coupon" element={<CouponRegister/>}/>
             <Route path="/profile" element={< Profile />}>
               <Route path="orders" element={<Orders />} />
               <Route path="coupons" element={<Coupons />} />
-              {/*<Route path="settings" element={<Settings />} />*/}
-              {/*<Route index element={<Orders />} /> /!* 기본 경로: 주문 내역 *!/*/}
             </Route>
           </Routes>
         </div>
@@ -41,4 +42,3 @@ function App() {
 }
 
 export default App;
-
