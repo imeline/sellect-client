@@ -1,7 +1,6 @@
 import ProductItem from "./ProductItem";
 
-export default function ProductGrid({ products, filters, sortType, visibleCount, onSortChange, onLoadMore }) {
-  // TODO: products 를 사용해서 ProductItem 컴포넌트를 렌더링합니다.
+export default function ProductGrid({ products, filters, sortType, onSortChange, onLoadMore, isLastPage }) {
   const sortedProducts = [...products].sort((a, b) => {
     if (sortType === "price-asc") return a.price - b.price;
     if (sortType === "price-desc") return b.price - a.price;
@@ -29,11 +28,11 @@ export default function ProductGrid({ products, filters, sortType, visibleCount,
         </select>
       </header>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {filteredProducts.slice(0, visibleCount).map((product) => (
+        {filteredProducts.map((product) => (
           <ProductItem key={product.product_id} product={product} />
         ))}
       </div>
-      {visibleCount < filteredProducts.length && (
+      {!isLastPage && (
         <div className="mt-8 text-center">
           <button
             onClick={onLoadMore}
