@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import useAuthStore from "../store/authStore.jsx";
+import React, {useEffect, useState} from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -9,7 +9,7 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const login = useAuthStore((state) => state.login);
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +27,9 @@ function Login() {
       });
       if (response.ok) {
         const data = await response.json();
-        login(data.user, data.accessToken);
-        navigate("/", { state: data });
+       
+        login(data.result.nickname, data.result.role);
+        navigate(data.result.role === 'USER' ? '/home' : '/seller', { replace: true });
       } else {
         const errData = await response.json();
         setError(errData.message || "로그인에 실패했습니다.");
@@ -51,14 +52,11 @@ function Login() {
             계정에 접속해 혜택을 누리세요!
           </p>
         </div>
-
-        {/* 폼 */}
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="email-address" className="sr-only">
-                이메일
-              </label>
+              <label htmlFor="email-address" className="sr-only">이메일</label>
               <input
                 id="email-address"
                 name="email"
@@ -70,11 +68,8 @@ function Login() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-
             <div>
-              <label htmlFor="password" className="sr-only">
-                비밀번호
-              </label>
+              <label htmlFor="password" className="sr-only">비밀번호</label>
               <input
                 id="password"
                 name="password"
@@ -87,38 +82,6 @@ function Login() {
               />
             </div>
           </div>
-
-          {/* 추가 옵션 */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded transition-all duration-200"
-              />
-              <label
-                htmlFor="remember-me"
-                className="ml-2 block text-sm text-gray-700"
-              >
-                로그인 상태 유지
-              </label>
-            </div>
-
-            <div className="text-sm">
-              <a
-                href="#"
-                className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
-              >
-                비밀번호를 잊으셨나요?
-              </a>
-            </div>
-          </div>
-
-          {/* 에러 메시지 */}
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-          {/* 제출 버튼 */}
           <div>
             <button
               type="submit"
@@ -127,14 +90,9 @@ function Login() {
               로그인
             </button>
           </div>
-
-          {/* 회원가입 링크 */}
           <p className="text-center text-sm text-gray-600">
-            계정이 없나요?{" "}
-            <Link
-              to="/register"
-              className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
-            >
+            계정이 없나요?{' '}
+            <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
               새로운 계정 만들기
             </Link>
           </p>

@@ -17,7 +17,14 @@ export default function ProductItem({ product }) {
   };
 
   const goToProductDetail = () => {
-    navigate(`/product/${product.id}`);
+    navigate(`${product.product_id}`);
+  };
+
+  const truncateProductName = (name, maxLength) => {
+    if (name.length > maxLength) {
+      return name.slice(0, maxLength) + "...";
+    }
+    return name;
   };
 
   return (
@@ -30,9 +37,10 @@ export default function ProductItem({ product }) {
         alt={product.name}
         className="w-full h-40 object-cover rounded-md"
       />
-      <h2 className="mt-2 text-lg font-semibold text-gray-900">{product.name}</h2>
+      <h2 className="mt-2 text-lg font-semibold text-gray-900 truncate">
+        {truncateProductName(product.name, 20)}
+      </h2>
       <p className="text-gray-500">₩{product.price.toLocaleString()}</p>
-      <p className="text-gray-600 text-sm mt-2">{product.description}</p>
       <div className="flex justify-center mt-2 text-yellow-500">
         {'★'.repeat(Math.floor(product.rating))}{'☆'.repeat(5 - Math.floor(product.rating))}
       </div>
