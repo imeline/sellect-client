@@ -1,6 +1,9 @@
 import React, {useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 
+
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // 환경 변수 불러오기
+
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -44,7 +47,7 @@ const Register = () => {
       setErrors(validationErrors);
     } else {
       try {
-        const response = await fetch('http://localhost:8080/v1/auth/signup', {
+        const response = await fetch(`${VITE_API_BASE_URL}/api/v1/auth/signup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

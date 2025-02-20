@@ -2,6 +2,8 @@ import {useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
 import useAuthStore from "../store/authStore.jsx";
 
+
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // 환경 변수 불러오기
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,7 +14,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8080/v1/auth/login', {
+      const response = await fetch(`${VITE_API_BASE_URL}/api/v1/auth/login`, {
         method: 'POST',
         credentials: 'include',
         headers: {
