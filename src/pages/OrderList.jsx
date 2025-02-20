@@ -1,5 +1,6 @@
 import OrderHeader from "../components/order/OrderHeader";
 import OrderItemsList from "../components/order/OrderItemsList";
+import CartOrderItem from "../components/CartOrderItem";
 
 function OrderList() {
   const orders = [
@@ -42,22 +43,35 @@ function OrderList() {
   ];
 
   return (
-    <div className="pt-16 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">주문 내역</h2>
-        <div className="space-y-8">
+    <div className="pt-12 bg-gray-50 min-h-screen">
+      {" "}
+      {/* pt-16 -> pt-12 */}
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        {" "}
+        {/* max-w-7xl -> max-w-3xl, py-12 -> py-8 */}
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          주문 내역
+        </h2>{" "}
+        {/* mb-6 -> mb-4 */}
+        <div className="space-y-6">
+          {" "}
+          {/* space-y-8 -> space-y-6 */}
           {orders.map((order) => (
             <div
               key={order.order_id}
-              className="bg-white rounded-lg shadow-md border border-gray-200 pt-4 p-6"
+              className="bg-white rounded-lg shadow-md border border-gray-200 p-6"
             >
-              {/* 주문 날짜 아래 여백 완전히 제거 */}
               <div className="pb-0">
                 <OrderHeader order={order} showDetailLink={true} />
               </div>
-              {/* border 아래 위쪽 여백 제거, 아래쪽 여백 유지 */}
               <div className="border-b border-gray-200 mt-0 mb-4"></div>
-              <OrderItemsList items={order.order_items} />
+              <div className="flex flex-col gap-4">
+                {" "}
+                {/* OrderItemsList 대신 직접 스타일 적용 */}
+                {order.order_items.map((item) => (
+                  <CartOrderItem key={item.product_id} item={item} />
+                ))}
+              </div>
             </div>
           ))}
         </div>

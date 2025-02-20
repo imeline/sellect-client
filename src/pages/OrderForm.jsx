@@ -1,5 +1,5 @@
 import { useState } from "react";
-import OrderItemsList from "../components/order/OrderItemsList"; // Import OrderItemsList
+import CartOrderItem from "../components/CartOrderItem";
 import CouponItem from "../components/CouponItem";
 import PaymentSummary from "../components/order/PaymentSummary";
 
@@ -44,26 +44,46 @@ function OrderForm() {
   };
 
   return (
-    <div className="pt-16 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">주문서</h1>
-        <div className="bg-white p-8 rounded-lg shadow-md border-t border-gray-200">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+    <div className="pt-12 bg-gray-50 min-h-screen">
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        {" "}
+        {/* max-w-7xl -> max-w-3xl */}
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">주문서</h1>{" "}
+        {/* text-3xl -> text-2xl */}
+        <div className="bg-white p-6 rounded-lg shadow-md border-t border-gray-200">
+          {" "}
+          {/* p-8 -> p-6 */}
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">
             주문 상품
-          </h3>
-          <OrderItemsList items={items} /> {/* OrderItemsList 사용 */}
-          <div className="mt-8">
+          </h3>{" "}
+          {/* text-xl -> text-lg */}
+          <div className="flex flex-col gap-4">
+            {" "}
+            {/* gap-6 -> gap-4 */}
+            {items.map((item) => (
+              <CartOrderItem key={item.id} item={item} />
+            ))}
+          </div>
+          <div className="mt-6 flex justify-end">
+            {" "}
+            {/* mt-8 -> mt-6, 버튼 오른쪽 정렬 */}
             <button
-              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-md text-base hover:bg-gray-300"
+              className="px-4 py-1.5 bg-gray-200 text-gray-700 rounded-md text-sm hover:bg-gray-300 transition"
               onClick={() => setShowCoupons(true)}
             >
               쿠폰 사용
             </button>
           </div>
           {showCoupons && (
-            <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center">
-              <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-                <h3 className="text-lg font-semibold mb-4">사용 가능한 쿠폰</h3>
+            <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+              {" "}
+              {/* absolute -> fixed, 투명도 조정 */}
+              <div className="bg-white p-5 rounded-lg shadow-lg w-80">
+                {" "}
+                {/* w-96 -> w-80, p-6 -> p-5 */}
+                <h3 className="text-base font-semibold text-gray-900 mb-3">
+                  사용 가능한 쿠폰
+                </h3>
                 {coupons.map((coupon) => (
                   <CouponItem
                     key={coupon.id}
@@ -72,7 +92,7 @@ function OrderForm() {
                   />
                 ))}
                 <button
-                  className="w-full mt-2 px-4 py-2 bg-gray-700 text-white rounded-md hover:bg-gray-800"
+                  className="w-full mt-3 px-3 py-1.5 bg-gray-700 text-white rounded-md text-sm hover:bg-gray-800 transition"
                   onClick={() => setShowCoupons(false)}
                 >
                   닫기
@@ -85,8 +105,10 @@ function OrderForm() {
             discount={discount}
             finalPrice={finalPrice}
           />
-          <div className="mt-6 text-center">
-            <button className="w-full py-3 bg-indigo-600 text-white font-bold rounded-md text-lg hover:bg-indigo-700 transition">
+          <div className="mt-6">
+            {" "}
+            {/* text-center 제거, 버튼 너비 조정 */}
+            <button className="w-full py-2.5 bg-indigo-600 text-white font-semibold rounded-md text-base hover:bg-indigo-700 transition">
               결제하기
             </button>
           </div>

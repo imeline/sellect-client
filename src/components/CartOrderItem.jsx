@@ -1,6 +1,6 @@
 function CartOrderItem({ item }) {
   return (
-    <div className="flex justify-between items-center bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+    <div className="flex justify-between items-center bg-white rounded-lg shadow-md p-4 border">
       <div className="flex items-center flex-1">
         <img
           src={item.imageUrl}

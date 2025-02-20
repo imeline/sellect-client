@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import OrderHeader from "../components/order/OrderHeader";
 import OrderItemsList from "../components/order/OrderItemsList";
 import PaymentSummary from "../components/order/PaymentSummary";
+import CartOrderItem from "../components/CartOrderItem";
 
 function OrderDetail() {
   const { orderId } = useParams();
@@ -57,18 +58,32 @@ function OrderDetail() {
   }));
 
   return (
-    <div className="pt-16 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">주문 상세</h1>
-        <div className="bg-white p-6 rounded-lg shadow-md border-t border-gray-200 pt-6">
+    <div className="pt-12 bg-gray-50 min-h-screen">
+      {" "}
+      {/* pt-16 -> pt-12 */}
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        {" "}
+        {/* max-w-7xl -> max-w-3xl, py-12 -> py-8 */}
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          주문 상세
+        </h1>{" "}
+        {/* mb-4 유지 */}
+        <div className="bg-white p-6 rounded-lg shadow-md border-t border-gray-200">
           {" "}
-          {/* 위쪽 여백 2배로: pt-4 -> pt-8 */}
+          {/* p-6, pt 제거 */}
           <OrderHeader order={order} orderNumber={order.order_number} />
           <div className="mt-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
               주문 상품
-            </h3>
-            <OrderItemsList items={orderItemsWithImage} />
+            </h3>{" "}
+            {/* mb-2 -> mb-3 */}
+            <div className="flex flex-col gap-4">
+              {" "}
+              {/* OrderItemsList 대신 직접 스타일 적용 */}
+              {orderItemsWithImage.map((item) => (
+                <CartOrderItem key={item.product_id} item={item} />
+              ))}
+            </div>
           </div>
           <PaymentSummary
             totalPrice={totalPrice}
