@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 
+
 const useAuthStore = create(immer((set) => ({
   isLoggedIn: false,
   user: null,
