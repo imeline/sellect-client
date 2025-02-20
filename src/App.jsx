@@ -8,6 +8,7 @@ import ProductDetail from './pages/ProductDetail.jsx';
 import Cart from './pages/Cart.jsx';
 import OrderList from './pages/OrderList.jsx';
 import Favorites from './pages/Favorites.jsx';
+import CouponRegister from "./pages/CouponRegister.jsx";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/orders" element={<OrderList />} />
           <Route path="/favorites" element={<Favorites />} />
+          <Route path="/coupon" element={<CouponRegister/>} />
         </Routes>
       </div>
     </Router>
@@ -30,3 +32,4 @@ function App() {
 }
 
 export default App;
+
