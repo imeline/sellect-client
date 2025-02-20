@@ -15,6 +15,8 @@ import ProductRegister from './pages/ProductRegister.jsx';
 import SellerHome from './pages/SellerHome.jsx';
 import Login from './pages/Login.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import Unauthorized from "./pages/Unauthorized.jsx";
+import OrderForm from "./pages/OrderForm.jsx";
 
 function App() {
   return (
