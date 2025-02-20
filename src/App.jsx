@@ -8,6 +8,7 @@ import ProductDetail from "./pages/ProductDetail.jsx";
 import Cart from "./pages/Cart.jsx";
 import OrderForm from "./pages/OrderForm.jsx";
 import OrderList from "./pages/OrderList.jsx";
+import OrderDetail from "./pages/OrderDetail.jsx";
 import Favorites from "./pages/Favorites.jsx";
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
           <Route path="/cart" element={<Cart />} />
           <Route path="/orders" element={<OrderList />} />
           <Route path="/order/form" element={<OrderForm />} />
+          <Route path="/order/:id" element={<OrderDetail />} />
           <Route path="/favorites" element={<Favorites />} />
         </Routes>
       </div>
