@@ -36,10 +36,10 @@ function SellerHome() {
               </div>
               <div className="mt-3 sm:mt-0 rounded-md shadow">
                 <Link
-                  to="/seller/dashboard"
+                  to="/coupon/upload"
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 md:py-4 md:text-lg md:px-10"
                 >
-                  대시보드 보기
+                  쿠폰 등록하기
                 </Link>
               </div>
             </div>
