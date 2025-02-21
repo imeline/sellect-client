@@ -75,7 +75,7 @@ export default function ProductDetail() {
               {/* 가격과 버튼을 같은 행에 배치 */}
               <div className="flex items-center mb-4 space-x-4">
                 <p className="text-gray-500 text-xl">
-                  ₩{product.price ? product.price.toLocaleString() : "0"}
+                  ${product.price ? product.price.toLocaleString() : "0"}
                 </p>
                 <button className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out">
                   장바구니에 추가

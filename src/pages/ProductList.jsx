@@ -1,9 +1,19 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import ProductFilters from "../components/ProductFilters.jsx";
 import ProductGrid from "../components/ProductGrid.jsx";
-import { priceRanges} from "./constants.js";
-import {useLocation} from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
+
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+const priceRanges = [
+  { label: "전체", min: 0, max: 500000 },
+  { label: "$50 이하", min: 0, max: 50 },
+  { label: "$50 ~ $100", min: 50, max: 100 },
+  { label: "$100 ~ $200", min: 100, max: 200 },
+  { label: "$200 ~ $300", min: 200, max: 300 },
+  { label: "$300 이상", min: 300, max: 500000 }
+];
 
 export default function ProductList() {
   const location = useLocation();
@@ -11,21 +21,36 @@ export default function ProductList() {
   const keyword = searchParams.get("keyword");
 
   const [products, setProducts] = useState([]);
-  const [filters, setFilters] = useState({ category: "", brand: "", minPrice: 0, maxPrice: 500000 });
+  const [filters, setFilters] = useState({ categoryId: "", brandId: "", minPrice: 0, maxPrice: 500000 });
   const [selectedPrice, setSelectedPrice] = useState(0);
   const [customPrice, setCustomPrice] = useState(false);
-  const [sortType, setSortType] = useState("rating-desc");
+  const [sortType, setSortType] = useState("LATEST");
   const [page, setPage] = useState(0);
   const [isLastPage, setIsLastPage] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // TODO: API_BASE_URL 환경 변수로 변경
-        const response = await axios.get("http://localhost:8080/api/v1/search/products", {
-          params: { keyword, page }, // TODO: 검색 필터 추가
+        const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/search/products`, {
+          params: {
+            "keyword": keyword,
+            "page": page,
+            "sortType": sortType,
+            "categoryId": filters.categoryId,
+            "brandId": filters.brandId,
+            "minPrice": filters.minPrice,
+            "maxPrice": filters.maxPrice,
+          },
         });
-        setProducts(prev => [...prev, ...response.data['result']['content']]);
+        if (page === 0) {
+          setProducts(response.data['result']['content']);
+        } else {
+          setProducts((prev) => {
+            const newProducts = [...prev, ...response.data['result']['content']];
+            return Array.from(new Map(newProducts.map((p) => [p.product_id, p])).values());
+          });
+        }
+        setIsLastPage(response.data['result']['last']);
       } catch (error) {
         console.error("Error fetching products:", error);
       }
@@ -36,10 +61,9 @@ export default function ProductList() {
     }
   }, [keyword, filters, selectedPrice, customPrice, sortType, page]);
 
-
-
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
+    setPage(0); // 필터 변경 시 페이지 초기화
   };
 
   const handlePriceFilter = (index) => {
@@ -47,15 +71,18 @@ export default function ProductList() {
     setSelectedPrice(index);
     setCustomPrice(false);
     setFilters({ ...filters, minPrice: priceRanges[index].min, maxPrice: priceRanges[index].max });
+    setPage(0); // 가격 필터 변경 시 페이지 초기화
   };
 
   const applyCustomPrice = () => {
     setSelectedPrice(null);
     setCustomPrice(true);
+    setPage(0); // 커스텀 가격 적용 시 페이지 초기화
   };
 
   const handleSortChange = (newSortType) => {
     setSortType(newSortType);
+    setPage(0); // 정렬 변경 시 페이지 초기화
   };
 
   const loadMore = () => {

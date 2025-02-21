@@ -1,69 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ProductImageUploader from "../components/ProductImageUploader";
+import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
+
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function ProductRegister() {
   const navigate = useNavigate();
 
-  // 샘플 카테고리 데이터
-  const categories = {
-    large: [
-      { id: 1, name: "전자제품" },
-      { id: 2, name: "의류" },
-      { id: 3, name: "식품" },
-    ],
-    medium: {
-      1: [
-        { id: 101, name: "스마트폰" },
-        { id: 102, name: "노트북" },
-      ],
-      2: [
-        { id: 201, name: "남성의류" },
-        { id: 202, name: "여성의류" },
-      ],
-      3: [
-        { id: 301, name: "스낵" },
-        { id: 302, name: "음료" },
-      ],
-    },
-    small: {
-      101: [
-        { id: 1001, name: "안드로이드" },
-        { id: 1002, name: "iOS" },
-      ],
-      102: [
-        { id: 1003, name: "게이밍 노트북" },
-        { id: 1004, name: "사무용 노트북" },
-      ],
-      201: [
-        { id: 2001, name: "티셔츠" },
-        { id: 2002, name: "바지" },
-      ],
-      202: [
-        { id: 2003, name: "원피스" },
-        { id: 2004, name: "스커트" },
-      ],
-      301: [
-        { id: 3001, name: "과자" },
-        { id: 3002, name: "초콜릿" },
-      ],
-      302: [
-        { id: 3003, name: "커피" },
-        { id: 3004, name: "주스" },
-      ],
-    },
-  };
-
-  // 샘플 브랜드 데이터
-  const brands = [
-    { id: 1, name: "Samsung" },
-    { id: 2, name: "Apple" },
-    { id: 3, name: "Nike" },
-    { id: 4, name: "Adidas" },
-    { id: 5, name: "Lotte" },
-  ];
-
-  // 폼 상태 초기값
+  // 카테고리 및 브랜드 데이터를 저장할 상태
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [formData, setFormData] = useState({
     largeCategoryId: "",
     mediumCategoryId: "",
@@ -73,27 +21,55 @@ function ProductRegister() {
     name: "",
     description: "",
     stock: "",
-    imageContextCreateRequest: [],
+    images: [],
   });
 
   const [errors, setErrors] = useState({});
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        let response = await axios.get(`${VITE_API_BASE_URL}/api/v1/categories`);
+        setCategories(response.data.result);
+
+        response = await axios.get(`${VITE_API_BASE_URL}/api/v1/brands`);
+        setBrands(response.data.result);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   // 입력값 변경 핸들러
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // 재고 필드에 음수 값 방지
+    if (name === "stock") {
+      const parsedValue = parseInt(value, 10);
+      if (value === "" || (parsedValue >= 0 && !isNaN(parsedValue))) {
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+        }));
+      }
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === "largeCategoryId" && { mediumCategoryId: "", categoryId: "" }),
-      ...(name === "mediumCategoryId" && { categoryId: "" }),
+      ...(name === "largeCategoryId" && { mediumCategoryId: "", categoryId: "" }), // 대분류 변경 시 중/소분류 초기화
+      ...(name === "mediumCategoryId" && { categoryId: "" }), // 중분류 변경 시 소분류 초기화
     }));
   };
 
   // 이미지 변경 핸들러
-  const handleImagesChange = (files) => {
-    setFormData((prev) => ({
+  const handleImagesChange = (images) => {
+    setFormData(prev => ({
       ...prev,
-      imageContextCreateRequest: files,
+      images: images,
     }));
   };
 
@@ -111,32 +87,48 @@ function ProductRegister() {
     else if (formData.name.length < 10) newErrors.name = "상품명은 최소 10글자 이상이어야 합니다.";
     if (!formData.stock) newErrors.stock = "재고(stock)는 필수 입력값입니다.";
     else if (parseInt(formData.stock) < 1) newErrors.stock = "재고(stock)는 1 이상이어야 합니다.";
-    if (formData.imageContextCreateRequest.length === 0)
-      newErrors.imageContextCreateRequest = "이미지를 최소 1개 이상 업로드해주세요.";
+    if (formData.images.length === 0)
+      newErrors.images = "이미지를 최소 1개 이상 업로드해주세요.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
+    // FormData 객체 구성
     const formDataToSend = new FormData();
-    formDataToSend.append("categoryId", formData.categoryId);
-    formDataToSend.append("brandId", formData.brandId);
-    formDataToSend.append("price", formData.price);
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("description", formData.description);
-    formDataToSend.append("stock", formData.stock);
-    formData.imageContextCreateRequest.forEach((file, index) => {
-      formDataToSend.append(`images[${index}]`, file);
+
+    // ProductRegisterRequest 객체 구성
+    const registerRequest = {
+      category_id: formData.categoryId,
+      brand_id: formData.brandId,
+      price: formData.price,
+      name: formData.name,
+      description: formData.description,
+      stock: formData.stock,
+      image_contexts: formData.images.map((image, index) => ({
+        target: uuidv4(), // 고유 ID 생성
+        prev: index === 0 ? null : formData.images[index - 1].target,
+        next: index === formData.images.length - 1 ? null : uuidv4(),
+        is_representative: index === 0, // 첫 번째 이미지를 대표 이미지로 설정
+      })),
+    };
+
+    formDataToSend.append("register_request",
+      new Blob([JSON.stringify(registerRequest)], { type: "application/json" }));
+
+    // 이미지 파일 추가
+    formData.images.forEach((file) => {
+      formDataToSend.append("images", file);
     });
 
     try {
-      const response = await fetch("/api/seller/products", {
-        method: "POST",
-        body: formDataToSend,
+      const response = await axios.post(`${VITE_API_BASE_URL}/api/v1/product`,
+        formDataToSend, {
+        withCredentials: true,
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
         navigate("/seller/products");
       } else {
         console.error("상품 등록 실패");
@@ -181,7 +173,7 @@ function ProductRegister() {
                         className="mt-1 block w-full rounded-lg border border-gray-200 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
                       >
                         <option value="">선택</option>
-                        {categories.large.map((cat) => (
+                        {categories.map((cat) => (
                           <option key={cat.id} value={cat.id}>
                             {cat.name}
                           </option>
@@ -202,9 +194,11 @@ function ProductRegister() {
                       >
                         <option value="">선택</option>
                         {formData.largeCategoryId &&
-                          categories.medium[formData.largeCategoryId].map((cat) => (
-                            <option key={cat.id} value={cat.id}>
-                              {cat.name}
+                          categories
+                            .find((cat) => cat.id === Number(formData.largeCategoryId))
+                            ?.children.map((child) => (
+                            <option key={child.id} value={child.id}>
+                              {child.name}
                             </option>
                           ))}
                       </select>
@@ -223,9 +217,12 @@ function ProductRegister() {
                       >
                         <option value="">선택</option>
                         {formData.mediumCategoryId &&
-                          categories.small[formData.mediumCategoryId].map((cat) => (
-                            <option key={cat.id} value={cat.id}>
-                              {cat.name}
+                          categories
+                            .find((cat) => cat.id === Number(formData.largeCategoryId))
+                            ?.children.find((child) => child.id === Number(formData.mediumCategoryId))
+                            ?.children.map((subChild) => (
+                            <option key={subChild.id} value={subChild.id}>
+                              {subChild.name}
                             </option>
                           ))}
                       </select>
@@ -313,6 +310,7 @@ function ProductRegister() {
                       id="stock"
                       value={formData.stock}
                       onChange={handleChange}
+                      min="0" // 음수 입력 방지
                       className="mt-1 block w-full rounded-lg border border-gray-200 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
                     />
                     {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
@@ -341,8 +339,8 @@ function ProductRegister() {
             <div className="w-1/2 pl-6">
               <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100 h-[calc(100vh-20rem)] overflow-y-auto">
                 <ProductImageUploader onImagesChange={handleImagesChange} />
-                {errors.imageContextCreateRequest && (
-                  <p className="mt-2 text-sm text-red-600">{errors.imageContextCreateRequest}</p>
+                {errors.images && (
+                  <p className="mt-2 text-sm text-red-600">{errors.images}</p>
                 )}
               </div>
             </div>
