@@ -1,4 +1,5 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import CartOrderItem from "../components/CartOrderItem";
 import CouponItem from "../components/CouponItem";
 import PaymentSummary from "../components/order/PaymentSummary";
@@ -6,6 +7,23 @@ import PaymentSummary from "../components/order/PaymentSummary";
 function OrderForm() {
   const [coupon, setCoupon] = useState(null);
   const [showCoupons, setShowCoupons] = useState(false);
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const orderId = location.state?.orderId; // ✅ `state`에서 `order_id` 가져오기
+
+  useEffect(() => {
+    if (!orderId) {
+      alert("유효한 주문 ID가 없습니다.");
+      navigate("/cart"); // ✅ `order_id`가 없으면 장바구니 페이지로 이동
+    } else {
+      console.log("✅ 주문 ID:", orderId);
+      // ✅ 여기서 `order_id`를 이용해 주문 상세 정보를 가져오는 API 요청 가능
+    }
+  }, [orderId, navigate]);
+
+
+
 
   const items = [
     {
