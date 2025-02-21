@@ -1,7 +1,7 @@
 import {useNavigate} from "react-router-dom";
 import axios from "axios"; // API 요청을 위해 추가 (설치 필요: npm install axios)
 
-export default function ProductItem({ product }) {
+export default function ProductItem({product}) {
   const navigate = useNavigate();
 
 // 장바구니 추가 함수 (API 연동 포함)
@@ -13,6 +13,8 @@ export default function ProductItem({ product }) {
       // `/api/v1/cart`로 POST 요청을 보내 장바구니에 상품 추가
       const response = await axios.put(`${baseApiUrl}/api/v1/cart`, {
         product_id: product.product_id, // 상품 ID를 API에 전달
+      }, {
+        withCredentials: true
       });
 
       // 요청 성공 시 사용자에게 알림
@@ -39,34 +41,34 @@ export default function ProductItem({ product }) {
   };
 
   return (
-    <div
-      className="bg-white p-4 rounded-lg shadow-lg text-center cursor-pointer"
-      onClick={goToProductDetail}
-    >
-      <div className="relative w-full aspect-square">
-        <img
-          src={product.image_url}
-          alt={product.name}
-          className="w-full h-full object-contain rounded-md"
-        />
-      </div>
-      <h2 className="mt-2 text-lg font-semibold text-gray-900 truncate">
-        {truncateProductName(product.name, 20)}
-      </h2>
-      <p className="text-gray-500">${product.price.toLocaleString()}</p>
-      <div className="flex justify-center mt-2 text-yellow-500">
-        {"★".repeat(Math.floor(product.rating || 0))}
-        {"☆".repeat(5 - Math.floor(product.rating || 0))}
-      </div>
-      <button
-          onClick={(e) => {
-            e.stopPropagation(); // 상위 div의 클릭 이벤트(상세 페이지 이동) 방지
-            addToCart(); // 장바구니 추가 함수 호출
-          }}
-          className="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out"
+      <div
+          className="bg-white p-4 rounded-lg shadow-lg text-center cursor-pointer"
+          onClick={goToProductDetail}
       >
-        장바구니 추가
-      </button>
-    </div>
+        <div className="relative w-full aspect-square">
+          <img
+              src={product.image_url}
+              alt={product.name}
+              className="w-full h-full object-contain rounded-md"
+          />
+        </div>
+        <h2 className="mt-2 text-lg font-semibold text-gray-900 truncate">
+          {truncateProductName(product.name, 20)}
+        </h2>
+        <p className="text-gray-500">${product.price.toLocaleString()}</p>
+        <div className="flex justify-center mt-2 text-yellow-500">
+          {"★".repeat(Math.floor(product.rating || 0))}
+          {"☆".repeat(5 - Math.floor(product.rating || 0))}
+        </div>
+        <button
+            onClick={(e) => {
+              e.stopPropagation(); // 상위 div의 클릭 이벤트(상세 페이지 이동) 방지
+              addToCart(); // 장바구니 추가 함수 호출
+            }}
+            className="mt-3 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out"
+        >
+          장바구니 추가
+        </button>
+      </div>
   );
 }
