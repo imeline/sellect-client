@@ -14,7 +14,7 @@ function SellerHome() {
   ];
 
   return (
-    <div className="pt-16"> {/* Navbar 높이만큼 상단 패딩 */}
+    <div className="pt-16">
       {/* Hero Section */}
       <div className="bg-indigo-50 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -25,7 +25,7 @@ function SellerHome() {
             <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
               상품을 관리하고 매출을 극대화하세요.
             </p>
-            <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8 gap-4">
+            <div className="mt-5 mx-auto sm:flex sm:justify-center md:mt-8 gap-4">
               <div className="rounded-md shadow">
                 <Link
                   to="/products/register"
@@ -40,6 +40,14 @@ function SellerHome() {
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 md:py-4 md:text-lg md:px-10"
                 >
                   쿠폰 등록하기
+                </Link>
+              </div>
+              <div className="mt-3 sm:mt-0 rounded-md shadow">
+                <Link
+                  to="/seller/dashboard"
+                  className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 md:py-4 md:text-lg md:px-10"
+                >
+                  대시보드
                 </Link>
               </div>
             </div>

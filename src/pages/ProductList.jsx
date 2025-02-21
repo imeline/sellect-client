@@ -26,7 +26,7 @@ export default function ProductList() {
   const [customPrice, setCustomPrice] = useState(false);
   const [sortType, setSortType] = useState("LATEST");
   const [page, setPage] = useState(0);
-  const [isLastPage, setIsLastPage] = useState(false);
+  const [isLastPage, setIsLastPage] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {

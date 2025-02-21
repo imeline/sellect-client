@@ -1,17 +1,22 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import {useNavigate} from "react-router-dom";
 import axios from "axios";
+import { ShoppingCartIcon } from "@heroicons/react/24/solid";
+
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function ProductDetail() {
   const { productId } = useParams();
   const [product, setProduct] = useState({});
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showCartMessage, setShowCartMessage] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // 상품 정보 조회 API 호출
     const fetchProductDetail = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/v1/products/${productId}`);
+        const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/products/${productId}`);
         setProduct(response.data.result);
       } catch (error) {
         console.error("Error fetching product:", error);
@@ -20,17 +25,62 @@ export default function ProductDetail() {
     fetchProductDetail();
   }, [productId]);
 
+  const addToCart = async () => {
+    try {
+      await axios.put(
+        `${VITE_API_BASE_URL}/api/v1/cart`,
+        {
+          product_id: productId,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      setShowCartMessage(true);
+      setTimeout(() => {
+        setShowCartMessage(false);
+      }, 2000);
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("장바구니 추가에 실패했습니다.");
+    }
+  };
+
+  const orderNow = async () => {
+    try {
+      const response = await axios.post(
+        `${VITE_API_BASE_URL}/api/v1/order/pending`,
+        {
+          total_price: product.price,
+          order_items: [
+            {
+              product_id: productId,
+              quantity: 1,
+              price: product.price,
+            },
+          ],
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      navigate(`/order/${response.data.result.order_id}`);
+    } catch (error) {
+      console.error("Error placing order:", error);
+      alert("주문에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    }
+  };
+
   const toggleExpansion = () => {
     setIsExpanded(!isExpanded);
   };
 
-  // 대표 이미지 찾기
   const representativeImage =
     product.images && product.images.length > 0
       ? product.images.find((img) => img.representative)?.image_url || product.images[0].image_url
       : "https://via.placeholder.com/400";
 
-  // 상세 이미지 필터링 (대표 이미지 제외 + 'SL' 키워드 포함)
   const detailImages =
     product.images && product.images.length > 0
       ? product.images
@@ -43,7 +93,6 @@ export default function ProductDetail() {
       <div className="max-w-4xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="flex items-start">
-            {/* 대표 이미지를 감싸는 고정된 세로 사이즈 컨테이너 */}
             <div className="w-full h-96">
               <img
                 src={representativeImage}
@@ -53,10 +102,9 @@ export default function ProductDetail() {
             </div>
           </div>
           <div className="flex flex-col justify-between">
-            <div>
+            <div className="relative">
               <h1 className="text-xl font-extrabold text-gray-900 mb-2">{product.name || "상품명"}</h1>
 
-              {/* 카테고리, 브랜드명, 판매자명 */}
               <div className="text-sm text-gray-600 mb-4 space-y-1">
                 <p>
                   <span className="font-medium text-gray-800">카테고리:</span>{" "}
@@ -72,24 +120,39 @@ export default function ProductDetail() {
                 </p>
               </div>
 
-              {/* 가격과 버튼을 같은 행에 배치 */}
-              <div className="flex items-center mb-4 space-x-4">
+              <div className="flex items-center justify-between mb-4">
                 <p className="text-gray-500 text-xl">
                   ${product.price ? product.price.toLocaleString() : "0"}
                 </p>
-                <button className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md shadow-sm transition duration-150 ease-in-out">
-                  장바구니에 추가
-                </button>
-              </div>
-
-              {/* 평점 (주석 해제 시 사용 가능) */}
-              {/* <div className="flex items-center mb-4">
-                <div className="flex text-yellow-500 mr-2">
-                  {"★".repeat(Math.floor(product.rating || 0))}
-                  {"☆".repeat(5 - Math.floor(product.rating || 0))}
+                <div className="flex items-center gap-2 relative">
+                  <button
+                    onClick={orderNow}
+                    className="bg-green-600 hover:bg-blue-700 text-white py-1.5 px-3 rounded-md shadow-sm transition duration-150 ease-in-out text-sm"
+                  >
+                    바로 주문
+                  </button>
+                  <button
+                    onClick={addToCart}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white py-1.5 px-3 rounded-md shadow-sm transition duration-150 ease-in-out flex items-center justify-center gap-1 text-sm"
+                  >
+                    <ShoppingCartIcon className="w-4 h-4" />
+                    장바구니 담기
+                  </button>
+                  {showCartMessage && (
+                    <div className="absolute bottom-full mb-2 right-0 w-64">
+                      <div className="bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-lg animate-fade-in-up">
+                        <div className="flex items-center justify-center gap-2">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          장바구니에 추가되었습니다
+                        </div>
+                      </div>
+                      <div className="w-3 h-3 bg-indigo-600 transform rotate-45 absolute right-4 -bottom-1 shadow-lg"></div>
+                    </div>
+                  )}
                 </div>
-                <span className="text-gray-600">{product.rating || "0.0"}</span>
-              </div> */}
+              </div>
               <p className="text-gray-700 mb-8">{product.description || "상품 설명이 없습니다."}</p>
             </div>
           </div>
