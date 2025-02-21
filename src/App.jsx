@@ -18,6 +18,7 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import Unauthorized from "./pages/Unauthorized.jsx";
 import OrderForm from "./pages/OrderForm.jsx";
 import CouponUpload from "./pages/CouponUpload.jsx";
+import SellerDashboard from "./pages/SellerDashboard.jsx";
 
 function App() {
   return (
@@ -26,19 +27,21 @@ function App() {
         <div className="min-h-screen bg-gray-50">
           <Navbar />
           <Routes>
+            {/* GUEST, USER 전용 */}
             <Route path="/" element={<RouteGuard component={Home} allowedRoles={['GUEST', 'USER']} defaultRedirect="/home" />} />
             <Route path="/home" element={<RouteGuard component={Home} allowedRoles={['GUEST', 'USER']} />} />
             <Route path="/products" element={<RouteGuard component={ProductList} allowedRoles={['GUEST', 'USER']} />} />
             <Route path="/products/:productId" element={<RouteGuard component={ProductDetail} allowedRoles={['GUEST', 'USER']} />} />
+
+            {/* SELLER 전용 */}
+            <Route path="/seller" element={<RouteGuard component={SellerHome} allowedRoles={['SELLER']} />} />
+            <Route path="/products/register" element={<RouteGuard component={ProductRegister} allowedRoles={['SELLER']} />} />
+            <Route path="/coupon/upload" element={<RouteGuard component={CouponUpload} allowedRoles={['SELLER']} />} />
+            <Route path="/seller/dashboard" element={<RouteGuard component={SellerDashboard} allowedRoles={['SELLER']} />} />
+
+            {/* USER 전용 */}
             <Route path="/cart" element={<RouteGuard component={Cart} allowedRoles={['USER']} />} />
             <Route path="/user/orders" element={<RouteGuard component={OrderList} allowedRoles={['USER']} />} />
-            <Route path="/seller" element={<RouteGuard component={SellerHome} allowedRoles={['SELLER']} />} />
-
-            <Route path="/products/register" element={<RouteGuard component={ProductRegister} allowedRoles={['SELLER']} />} />
-            <Route path="/register" element={<RouteGuard component={Register} allowedRoles={['GUEST']} />} />
-
-            <Route path="/coupon/upload" element={<RouteGuard component={CouponUpload} allowedRoles={['SELLER']} />} />
-
             <Route path="/coupon" element={<RouteGuard component={CouponDownload} allowedRoles={['USER']} />} />
             <Route path="/order/form" element={<RouteGuard component={OrderForm} allowedRoles={['USER']} />} />
             <Route path="/order/:id" element={<RouteGuard component={OrderDetail} allowedRoles={['USER']} />} />
@@ -47,6 +50,8 @@ function App() {
               <Route path="coupons" element={<RouteGuard component={Coupons} allowedRoles={['USER']} />} />
             </Route>
 
+            {/* 인증 */}
+            <Route path="/register" element={<RouteGuard component={Register} allowedRoles={['GUEST']} />} />
             <Route path="/login" element={<RouteGuard component={Login} allowedRoles={['GUEST']} />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="*" element={<Navigate to="/unauthorized" replace />} />

@@ -129,7 +129,7 @@ function ProductRegister() {
       });
 
       if (response.status === 200) {
-        navigate("/seller/products");
+        navigate("/seller/dashboard");
       } else {
         console.error("상품 등록 실패");
       }
