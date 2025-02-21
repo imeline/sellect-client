@@ -20,6 +20,8 @@ import OrderForm from "./pages/OrderForm.jsx";
 import CouponUpload from "./pages/CouponUpload.jsx";
 import PaymentHistory from "./components/PaymentHistory.jsx";
 import LeaveAccount from "./components/LeaveAccount.jsx";
+import PaymentSuccess from "./pages/PaymentSuccess.jsx";
+import OrderComplete from "./pages/OrderComplete.jsx";
 
 function App() {
   return (
@@ -50,7 +52,8 @@ function App() {
               <Route path="coupons" element={<RouteGuard component={Coupons} allowedRoles={['USER']} />} />
               <Route path="leave" element={<RouteGuard component={LeaveAccount} allowedRoles={['USER']} />} />
             </Route>
-
+            <Route path="/payment/success" element={<RouteGuard component={PaymentSuccess} allowedRoles={['USER']} />} />
+            <Route path="/order/complete" element={<RouteGuard component={OrderComplete} allowedRoles={['USER']} />} />
             <Route path="/login" element={<RouteGuard component={Login} allowedRoles={['GUEST']} />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="*" element={<Navigate to="/unauthorized" replace />} />
