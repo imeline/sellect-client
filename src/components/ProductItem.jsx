@@ -1,30 +1,26 @@
 import {useNavigate} from "react-router-dom";
-import axios from "axios"; // API 요청을 위해 추가 (설치 필요: npm install axios)
+import axios from "axios";
+
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function ProductItem({ product }) {
   const navigate = useNavigate();
 
-// 장바구니 추가 함수 (API 연동 포함)
   const addToCart = async () => {
-    // .env.local에서 VITE_BASE_API_URL 가져오기
-    const baseApiUrl = import.meta.env.VITE_API_BASE_URL; // 예: "http://localhost:8080"
-    // --- 장바구니 추가 로직 구현 시작 ---
     try {
-      // `/api/v1/cart`로 POST 요청을 보내 장바구니에 상품 추가
-      const response = await axios.put(`${baseApiUrl}/api/v1/cart`, {
-        product_id: product.product_id, // 상품 ID를 API에 전달
+      const response = await axios.put(`${VITE_API_BASE_URL}/api/v1/cart`, {
+        product_id: product.product_id,
+      }, {
+        withCredentials: true,
       });
 
-      // 요청 성공 시 사용자에게 알림
       if (response.status === 200) {
         alert("장바구니에 추가되었습니다!");
       }
     } catch (error) {
-      // 에러 발생 시 콘솔에 기록하고 사용자에게 알림
       console.error("장바구니 추가 실패:", error);
       alert("장바구니 추가에 실패했습니다.");
     }
-    // --- 장바구니 추가 로직 구현 끝 ---
   };
 
   const goToProductDetail = () => {

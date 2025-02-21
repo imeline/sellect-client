@@ -1,4 +1,3 @@
-// src/components/Navbar.jsx
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCartIcon, HeartIcon, UserIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../context/AuthContext.jsx";
