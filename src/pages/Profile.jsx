@@ -1,16 +1,16 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // AuthContext에서 상태 가져오기
 
 const Profile = () => {
-  const location = useLocation(); // 현재 경로 확인용
+  const location = useLocation();
+  const { isLoggedIn, role, user, logout } = useAuth();
 
-  // 가정된 유저 데이터 (API로 대체 가능)
-  const user = {
-    nickname: 'SellectUser',
-    email: 'user@example.com',
-    profileImage: 'https://via.placeholder.com/150',
-    tier: 'Gold', // 이커머스 회원 등급 예시
-  };
+  // 유저 정보 기본값 설정
+  const displayName = user || 'Guest';
+  const displayEmail = isLoggedIn || '로그인 후 이용 가능';
+  // const profileImage = user?.profileImage || 'https://via.placeholder.com/150';
+  const tier = user?.tier || 'Bronze';
 
   return (
       <div className="min-h-screen bg-gray-100 flex">
@@ -18,50 +18,74 @@ const Profile = () => {
         <div className="w-64 bg-white shadow-md p-6 flex-shrink-0">
           <div className="flex flex-col items-center mb-8">
             <img
-                src={user.profileImage}
                 alt="Profile"
                 className="w-20 h-20 rounded-full object-cover mb-4"
             />
-            <h2 className="text-xl font-semibold text-gray-900">{user.nickname}</h2>
-            <p className="text-sm text-gray-600">{user.email}</p>
-            <span className="mt-2 px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full">
-            {user.tier} 회원
-          </span>
+            <h2 className="text-xl font-semibold text-gray-900">{displayName}</h2>
+            <p className="text-sm text-gray-600">{displayEmail}</p>
+            {isLoggedIn && (
+                <span className="mt-2 px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-medium rounded-full">
+              {tier} 회원
+            </span>
+            )}
           </div>
 
           <nav className="space-y-2">
-            <Link
-                to="/profile/orders"
-                className={`block py-2 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${
-                    location.pathname === '/profile/orders' ? 'bg-indigo-100 text-indigo-600' : ''
-                }`}
-            >
-              주문 내역
-            </Link>
-            <Link
-                to="/profile/coupons"
-                className={`block py-2 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${
-                    location.pathname === '/profile/coupons' ? 'bg-indigo-100 text-indigo-600' : ''
-                }`}
-            >
-              쿠폰 발급 내역
-            </Link>
-            {/* 추가 메뉴 */}
-
-            <Link
-                to="/profile/settings"
-                className={`block py-2 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${
-                    location.pathname === '/profile/settings' ? 'bg-indigo-100 text-indigo-600' : ''
-                }`}
-            >
-              계정 설정
-            </Link>
+            {isLoggedIn && role === 'USER' ? (
+                <>
+                  <Link
+                      to="orders" // 상대 경로
+                      className={`block py-2 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${
+                          location.pathname === '/user/profile/orders' ? 'bg-indigo-100 text-indigo-600' : ''
+                      }`}
+                  >
+                    주문 내역
+                  </Link>
+                  <Link
+                      to="coupons" // 상대 경로
+                      className={`block py-2 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${
+                          location.pathname === '/user/profile/coupons' ? 'bg-indigo-100 text-indigo-600' : ''
+                      }`}
+                  >
+                    쿠폰 발급 내역
+                  </Link>
+                  <Link
+                      to="settings" // 상대 경로
+                      className={`block py-2 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${
+                          location.pathname === '/user/profile/settings' ? 'bg-indigo-100 text-indigo-600' : ''
+                      }`}
+                  >
+                    계정 설정
+                  </Link>
+                  <button
+                      onClick={logout}
+                      className="block w-full py-2 px-4 rounded-md text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors text-left"
+                  >
+                    로그아웃
+                  </button>
+                </>
+            ) : (
+                <p className="text-gray-500 text-sm">로그인 후 이용 가능합니다.</p>
+            )}
           </nav>
         </div>
 
         {/* 가운데 콘텐츠 */}
         <div className="flex-1 p-8">
-          <Outlet /> {/* 라우팅에 따라 컴포넌트 렌더링 */}
+          {isLoggedIn && role === 'USER' ? (
+              <Outlet />
+          ) : (
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">로그인이 필요합니다</h2>
+                <p className="text-gray-600">프로필 기능을 사용하려면 로그인하세요.</p>
+                <Link
+                    to="/login"
+                    className="mt-6 inline-flex items-center px-6 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors"
+                >
+                  로그인 하러 가기
+                </Link>
+              </div>
+          )}
         </div>
       </div>
   );

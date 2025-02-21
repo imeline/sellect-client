@@ -7,7 +7,7 @@ import ProductDetail from './pages/ProductDetail.jsx';
 import Cart from './pages/Cart.jsx';
 import OrderList from './pages/OrderList.jsx';
 import OrderDetail from "./pages/OrderDetail.jsx";
-import CouponRegister from "./pages/CouponRegister.jsx";
+import CouponDownload from "./pages/CouponDownload.jsx";
 import Profile from "./pages/Profile.jsx";
 import Coupons from "./components/Coupons.jsx";
 import Orders from "./components/Orders.jsx";
@@ -17,6 +17,7 @@ import Login from './pages/Login.jsx';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import Unauthorized from "./pages/Unauthorized.jsx";
 import OrderForm from "./pages/OrderForm.jsx";
+import CouponUpload from "./pages/CouponUpload.jsx";
 
 function App() {
   return (
@@ -32,13 +33,16 @@ function App() {
             <Route path="/user/cart" element={<RouteGuard component={Cart} allowedRoles={['USER']} />} />
             <Route path="/user/orders" element={<RouteGuard component={OrderList} allowedRoles={['USER']} />} />
             <Route path="/seller" element={<RouteGuard component={SellerHome} allowedRoles={['SELLER']} />} />
-            <Route path="/coupon" element={<RouteGuard component={CouponRegister} allowedRoles={['SELLER']} />} />
+
             <Route path="/products/register" element={<RouteGuard component={ProductRegister} allowedRoles={['SELLER']} />} />
             <Route path="/register" element={<RouteGuard component={Register} allowedRoles={['GUEST']} />} />
-            
+
+            <Route path="/coupon/upload" element={<RouteGuard component={CouponUpload} allowedRoles={['SELLER']} />} />
+
+            <Route path="/coupon" element={<RouteGuard component={CouponDownload} allowedRoles={['USER']} />} />
             <Route path="/order/form" element={<RouteGuard component={OrderForm} allowedRoles={['USER']} />} />
             <Route path="/order/:id" element={<RouteGuard component={OrderDetail} allowedRoles={['USER']} />} />
-            <Route path="/profile" element={<RouteGuard component={Profile} allowedRoles={['USER']} />}>
+            <Route path="/user/profile" element={<RouteGuard component={Profile} allowedRoles={['USER']} />}>
               <Route path="orders" element={<RouteGuard component={Orders} allowedRoles={['USER']} />} />
               <Route path="coupons" element={<RouteGuard component={Coupons} allowedRoles={['USER']} />} />
             </Route>
