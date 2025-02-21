@@ -18,6 +18,7 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import Unauthorized from "./pages/Unauthorized.jsx";
 import OrderForm from "./pages/OrderForm.jsx";
 import CouponUpload from "./pages/CouponUpload.jsx";
+import PaymentHistory from "./components/PaymentHistory.jsx";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
             <Route path="/order/:id" element={<RouteGuard component={OrderDetail} allowedRoles={['USER']} />} />
             <Route path="/user/profile" element={<RouteGuard component={Profile} allowedRoles={['USER']} />}>
               <Route path="orders" element={<RouteGuard component={Orders} allowedRoles={['USER']} />} />
+              <Route path="payment-history" element={<RouteGuard component={PaymentHistory} allowedRoles={['USER']} />} />
               <Route path="coupons" element={<RouteGuard component={Coupons} allowedRoles={['USER']} />} />
             </Route>
 
