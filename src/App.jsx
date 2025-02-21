@@ -38,7 +38,7 @@ function App() {
             
             <Route path="/order/form" element={<RouteGuard component={OrderForm} allowedRoles={['USER']} />} />
             <Route path="/order/:id" element={<RouteGuard component={OrderDetail} allowedRoles={['USER']} />} />
-            <Route path="/profile" element={<RouteGuard component={Profile} allowedRoles={['USER']} />}>
+            <Route path="/user/profile" element={<RouteGuard component={Profile} allowedRoles={['USER']} />}>
               <Route path="orders" element={<RouteGuard component={Orders} allowedRoles={['USER']} />} />
               <Route path="coupons" element={<RouteGuard component={Coupons} allowedRoles={['USER']} />} />
             </Route>
