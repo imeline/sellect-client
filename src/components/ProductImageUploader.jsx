@@ -5,6 +5,9 @@ function ProductImageUploader({ onImagesChange }) {
   const [dragOver, setDragOver] = useState(false);
 
   const handleFiles = useCallback((files) => {
+    // file (이미지 파일)
+    // -> 1. image context (target, prev, next)
+    // -> 2. file (원본 파일)
     const newImages = Array.from(files).map((file) => ({
       file,
       url: URL.createObjectURL(file),
