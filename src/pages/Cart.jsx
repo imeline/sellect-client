@@ -29,16 +29,16 @@ function CartPage() {
           },
         });
 
-        console.log("API 응답 데이터:", response.data);
+        console.log("📌 API 응답 데이터:", response.data);
 
         if (response.data.is_success) {
           setCartItems(response.data.result);
         } else {
-          console.error("장바구니 조회 실패:", response.data.message);
+          console.error("❌ 장바구니 조회 실패:", response.data.message);
           alert("장바구니를 불러오지 못했습니다.");
         }
       } catch (error) {
-        console.error("장바구니 조회 중 오류:", error.response?.data || error.message);
+        console.error("❌ 장바구니 조회 중 오류:", error.response?.data || error.message);
         alert("장바구니 데이터를 불러오는 데 실패했습니다.");
       } finally {
         setLoading(false);
@@ -50,11 +50,11 @@ function CartPage() {
 
   // ✅ 수량 변경 요청
   const changeQuantity = async (cartItemId, change) => {
-    console.log("수량 변경 요청 - cartItemId:", cartItemId, "변경값:", change);
+    console.log("📌 수량 변경 요청 - cartItemId:", cartItemId, "변경값:", change);
 
     try {
       if (!cartItemId) {
-        console.error("유효하지 않은 cartItemId:", cartItemId);
+        console.error("❌ 유효하지 않은 cartItemId:", cartItemId);
         alert("상품 ID가 올바르지 않습니다.");
         return;
       }
@@ -83,12 +83,52 @@ function CartPage() {
             )
         );
       } else {
-        console.error("수량 변경 실패:", response.data.message);
+        console.error("❌ 수량 변경 실패:", response.data.message);
         alert("수량 변경에 실패했습니다.");
       }
     } catch (error) {
-      console.error("수량 변경 중 오류:", error.response?.data || error.message);
+      console.error("❌ 수량 변경 중 오류:", error.response?.data || error.message);
       alert("수량 변경에 실패했습니다.");
+    }
+  };
+
+  // ✅ 장바구니 아이템 삭제 요청
+  const removeItem = async (cartItemId) => {
+    console.log("🗑 삭제 요청 - cartItemId:", cartItemId);
+
+    try {
+      if (!cartItemId) {
+        console.error("❌ 유효하지 않은 cartItemId:", cartItemId);
+        alert("상품 ID가 올바르지 않습니다.");
+        return;
+      }
+
+      const baseApiUrl = import.meta.env.VITE_API_BASE_URL;
+
+      const response = await axios.delete(
+          `${baseApiUrl}/api/v1/carts/${cartItemId}`, // ✅ DELETE 요청
+          {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+      );
+
+      if (response.data.is_success) {
+        console.log("🗑 삭제 성공 - cartItemId:", cartItemId);
+
+        // ✅ UI에서 해당 아이템 제거
+        setCartItems((prevItems) =>
+            prevItems.filter((item) => item.cart_item_id !== cartItemId)
+        );
+      } else {
+        console.error("❌ 삭제 실패:", response.data.message);
+        alert("장바구니 삭제에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("❌ 삭제 중 오류:", error.response?.data || error.message);
+      alert("장바구니 삭제 요청이 실패했습니다.");
     }
   };
 
@@ -125,6 +165,7 @@ function CartPage() {
                           key={item.cart_item_id}
                           item={item} // ✅ `cart_item_id` 유지
                           changeQuantity={changeQuantity}
+                          removeItem={removeItem} // ✅ 삭제 기능 추가
                       />
                   ))
               )}

@@ -1,4 +1,6 @@
-function CartItem({ item, changeQuantity }) {
+import { TrashIcon } from "@heroicons/react/24/outline"; // ✅ 삭제 아이콘 추가
+
+function CartItem({ item, changeQuantity, removeItem }) {
   console.log("CartItem props - item:", item); // 디버깅용: item 객체 확인
 
   const isQuantityOne = item.quantity === 1; // ✅ 수량이 1인지 체크
@@ -18,7 +20,7 @@ function CartItem({ item, changeQuantity }) {
             {/* 수량 조절 버튼 */}
             <div className="flex items-center gap-2 mt-2">
               <button
-                  onClick={() => !isQuantityOne && changeQuantity(item.cart_item_id, -1)} // ✅ 수량이 1이면 비활성화
+                  onClick={() => !isQuantityOne && changeQuantity(item.cart_item_id, -1)} // ✅ -1 전달
                   className={`px-3 py-1 rounded-md transition ${
                       isQuantityOne ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
@@ -37,11 +39,18 @@ function CartItem({ item, changeQuantity }) {
           </div>
         </div>
 
-        {/* 가격 정보 - 원래 위치로 이동 (text-right 적용) */}
-        <div className="text-right">
-        <span className="text-sm text-gray-900 font-semibold">
+        {/* 가격 정보 & 삭제 버튼 */}
+        <div className="flex flex-col items-end">
+        <span className="text-sm text-gray-900 font-semibold mb-2">
           {(item.product_price * item.quantity).toLocaleString()}원
         </span>
+          {/* 🗑 삭제 버튼 */}
+          <button
+              onClick={() => removeItem(item.cart_item_id)} // ✅ 삭제 요청
+              className="text-red-500 hover:text-red-700 transition"
+          >
+            <TrashIcon className="w-6 h-6" />
+          </button>
         </div>
       </div>
   );
