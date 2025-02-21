@@ -4,6 +4,8 @@ import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import { ShoppingCartIcon } from "@heroicons/react/24/solid";
 
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export default function ProductDetail() {
   const { productId } = useParams();
   const [product, setProduct] = useState({});
@@ -14,7 +16,7 @@ export default function ProductDetail() {
   useEffect(() => {
     const fetchProductDetail = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/api/v1/products/${productId}`);
+        const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/products/${productId}`);
         setProduct(response.data.result);
       } catch (error) {
         console.error("Error fetching product:", error);
@@ -26,7 +28,7 @@ export default function ProductDetail() {
   const addToCart = async () => {
     try {
       await axios.put(
-        `http://localhost:8080/api/v1/cart`,
+        `${VITE_API_BASE_URL}/api/v1/cart`,
         {
           product_id: productId,
         },
@@ -47,7 +49,7 @@ export default function ProductDetail() {
   const orderNow = async () => {
     try {
       const response = await axios.post(
-        `http://localhost:8080/api/v1/order/pending`,
+        `${VITE_API_BASE_URL}/api/v1/order/pending`,
         {
           total_price: product.price,
           order_items: [
