@@ -19,6 +19,10 @@ import Unauthorized from "./pages/Unauthorized.jsx";
 import OrderForm from "./pages/OrderForm.jsx";
 import CouponUpload from "./pages/CouponUpload.jsx";
 import SellerDashboard from "./pages/SellerDashboard.jsx";
+import PaymentHistory from "./components/PaymentHistory.jsx";
+import LeaveAccount from "./components/LeaveAccount.jsx";
+import PaymentSuccess from "./pages/PaymentSuccess.jsx";
+import OrderComplete from "./pages/OrderComplete.jsx";
 
 function App() {
   return (
@@ -47,8 +51,12 @@ function App() {
             <Route path="/order/:id" element={<RouteGuard component={OrderDetail} allowedRoles={['USER']} />} />
             <Route path="/user/profile" element={<RouteGuard component={Profile} allowedRoles={['USER']} />}>
               <Route path="orders" element={<RouteGuard component={Orders} allowedRoles={['USER']} />} />
+              <Route path="payment-history" element={<RouteGuard component={PaymentHistory} allowedRoles={['USER']} />} />
               <Route path="coupons" element={<RouteGuard component={Coupons} allowedRoles={['USER']} />} />
+              <Route path="leave" element={<RouteGuard component={LeaveAccount} allowedRoles={['USER']} />} />
             </Route>
+            <Route path="/payment/success" element={<RouteGuard component={PaymentSuccess} allowedRoles={['USER']} />} />
+            <Route path="/order/complete" element={<RouteGuard component={OrderComplete} allowedRoles={['USER']} />} />
 
             {/* 인증 */}
             <Route path="/register" element={<RouteGuard component={Register} allowedRoles={['GUEST']} />} />
