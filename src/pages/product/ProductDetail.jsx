@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {useNavigate} from "react-router-dom";
 import axios from "axios";
 import { ShoppingCartIcon } from "@heroicons/react/24/solid";
+import {useAuth} from "../../context/AuthContext.jsx";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -12,6 +13,7 @@ export default function ProductDetail() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showCartMessage, setShowCartMessage] = useState(false);
   const navigate = useNavigate();
+  const { updateCartCount } = useAuth();
 
   useEffect(() => {
     const fetchProductDetail = async () => {
@@ -40,6 +42,10 @@ export default function ProductDetail() {
       setTimeout(() => {
         setShowCartMessage(false);
       }, 2000);
+      const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/carts/count`, {
+        withCredentials: true,
+      });
+      updateCartCount(response.data.result);
     } catch (error) {
       console.error("Error adding to cart:", error);
       alert("장바구니 추가에 실패했습니다.");
