@@ -63,7 +63,7 @@ export default function SellerDashboard() {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900">등록 상품 목록</h2>
             <Link
-              to="/products/register"
+              to="/seller/products/register"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
             >
               새 상품 등록
@@ -94,18 +94,18 @@ export default function SellerDashboard() {
                     <div className="p-4">
                       <h3 className="text-lg font-semibold text-gray-900 truncate">{product.name}</h3>
                       <p className="mt-1 text-sm text-gray-500">
-                        가격: ₩{product.price?.toLocaleString() || "0"}
+                        가격: ${product.price?.toLocaleString() || "0"}
                       </p>
                       <p className="mt-1 text-sm text-gray-500">재고: {product.stock || 0}</p>
                       <div className="mt-4 flex justify-between items-center">
                         <Link
-                          to={`/seller/products/${product.id}`}
+                          to={`/seller/products/${product.product_id}`}
                           className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
                         >
                           상세 보기
                         </Link>
                         <Link
-                          to={`/seller/products/${product.id}/edit`}
+                          to={`/seller/products/${product.product_id}/edit`}
                           className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
                         >
                           수정
