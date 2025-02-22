@@ -1,6 +1,6 @@
-import OrderHeader from "../components/order/OrderHeader";
-import OrderItemsList from "../components/order/OrderItemsList";
-import CartOrderItem from "../components/CartOrderItem";
+import OrderHeader from "../../components/order/OrderHeader.jsx";
+import OrderItemsList from "../../components/order/OrderItemsList.jsx";
+import CartOrderItem from "../../components/cart/CartOrderItem.jsx";
 
 function OrderList() {
   const orders = [

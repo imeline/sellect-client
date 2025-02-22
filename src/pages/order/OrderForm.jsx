@@ -1,7 +1,7 @@
 import { useState } from "react";
-import CartOrderItem from "../components/CartOrderItem";
-import CouponItem from "../components/CouponItem";
-import PaymentSummary from "../components/order/PaymentSummary";
+import CartOrderItem from "../../components/cart/CartOrderItem.jsx";
+import CouponItem from "../../components/coupon/CouponItem.jsx";
+import PaymentSummary from "../../components/order/PaymentSummary.jsx";
 
 function OrderForm() {
   const [coupon, setCoupon] = useState(null);

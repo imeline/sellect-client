@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import ProductFilters from "../components/ProductFilters.jsx";
-import ProductGrid from "../components/ProductGrid.jsx";
+import ProductFilters from "../../components/product/ProductFilters.jsx";
+import ProductGrid from "../../components/product/ProductGrid.jsx";
 import { useLocation } from "react-router-dom";
 import axios from "axios";
 

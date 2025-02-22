@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 

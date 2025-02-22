@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext'; // AuthContext에서 상태 가져오기
+import { useAuth } from '../../context/AuthContext.jsx'; // AuthContext에서 상태 가져오기
 
 const Profile = () => {
   const location = useLocation();
