@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import ProductImageUploader from "../components/ProductImageUploader";
+import ProductImageUploader from "../../components/product/ProductImageUploader.jsx";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 
@@ -99,6 +99,9 @@ function ProductRegister() {
     const formDataToSend = new FormData();
 
     // ProductRegisterRequest 객체 구성
+    const generatedUuid = formData.images.map(() => ({
+      uuid: uuidv4() // 고유 ID 생성
+    }));
     const registerRequest = {
       category_id: formData.categoryId,
       brand_id: formData.brandId,
@@ -107,9 +110,9 @@ function ProductRegister() {
       description: formData.description,
       stock: formData.stock,
       image_contexts: formData.images.map((image, index) => ({
-        target: uuidv4(), // 고유 ID 생성
-        prev: index === 0 ? null : formData.images[index - 1].target,
-        next: index === formData.images.length - 1 ? null : uuidv4(),
+        target: generatedUuid[index].uuid, // 고유 ID 생성
+        prev: index === 0 ? null : generatedUuid[index - 1].uuid,
+        next: index === formData.images.length - 1 ? null : generatedUuid[index + 1].uuid,
         is_representative: index === 0, // 첫 번째 이미지를 대표 이미지로 설정
       })),
     };
@@ -118,9 +121,13 @@ function ProductRegister() {
       new Blob([JSON.stringify(registerRequest)], { type: "application/json" }));
 
     // 이미지 파일 추가
-    formData.images.forEach((file) => {
-      formDataToSend.append("images", file);
+    formData.images.forEach((file, index) => {
+      const fileExtension = file.name.split(".").pop();
+      formDataToSend.append("images",
+        new File([file], generatedUuid[index].uuid + "." + fileExtension, { type: file.type }));
     });
+
+    console.log("상품 등록 요청:", registerRequest);
 
     try {
       const response = await axios.post(`${VITE_API_BASE_URL}/api/v1/product`,

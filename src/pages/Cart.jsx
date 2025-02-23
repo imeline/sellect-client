@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import CartItem from "../components/CartItem";
+import CartItem from "../components/CartItem.jsx";
 
 function CartPage() {
   const [cartItems, setCartItems] = useState([]);

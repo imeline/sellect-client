@@ -1,17 +1,43 @@
-import { Link } from "react-router-dom";
+import {Link} from "react-router-dom";
+import {useEffect, useState} from "react";
+import axios from "axios";
+
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function SellerHome() {
-  const sellerStats = {
-    totalProducts: 15,
-    totalSales: "₩1,250,000",
-    pendingOrders: 8,
-  };
+  const [sellerStats, setSellerStats] = useState({
+    totalProductsCount: 0,
+    totalSales: "$0.00",
+    pendingOrders: 0,
+  });
+  const [recentProducts, setRecentProducts] = useState([]);
 
-  const recentProducts = [
-    { id: 1, name: "판매 상품 1", stock: 25, image: "https://via.placeholder.com/300" },
-    { id: 2, name: "판매 상품 2", stock: 10, image: "https://via.placeholder.com/300" },
-    { id: 3, name: "판매 상품 3", stock: 5, image: "https://via.placeholder.com/300" },
-  ];
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        let response = await axios.get(`${VITE_API_BASE_URL}/api/v1/seller/stats`, {
+          withCredentials: true,
+        });
+        setSellerStats((prev) => ({
+          ...prev,
+          totalSales: new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+          }).format(response.data.result.total_sales) || "$0.00",
+          totalProductsCount: response.data.result.total_products_count || 0,
+        }));
+
+        // response = await axios.get(`${VITE_API_BASE_URL}/api/v1/seller/products/recent`, {
+        //   withCredentials: true,
+        // });
+        // setRecentProducts(response.data.result || []);
+      } catch (error) {
+        console.error("상품 정보를 불러오는 중 오류가 발생했습니다:", error);
+      }
+    };
+
+    fetchStats()
+  }, []);
 
   return (
     <div className="pt-16">
@@ -28,7 +54,7 @@ function SellerHome() {
             <div className="mt-5 mx-auto sm:flex sm:justify-center md:mt-8 gap-4">
               <div className="rounded-md shadow">
                 <Link
-                  to="/products/register"
+                  to="/seller/products/register"
                   className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 md:py-4 md:text-lg md:px-10"
                 >
                   새 상품 등록
@@ -61,7 +87,7 @@ function SellerHome() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900">등록된 상품</h3>
-            <p className="mt-2 text-3xl font-bold text-indigo-600">{sellerStats.totalProducts}</p>
+            <p className="mt-2 text-3xl font-bold text-indigo-600">{sellerStats.totalProductsCount}</p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900">총 매출</h3>
@@ -80,7 +106,8 @@ function SellerHome() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {recentProducts.map((product) => (
             <div key={product.id} className="group relative">
-              <div className="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75">
+              <div
+                className="w-full min-h-80 bg-gray-200 aspect-w-1 aspect-h-1 rounded-md overflow-hidden group-hover:opacity-75">
                 <img
                   src={product.image}
                   alt={product.name}
@@ -91,7 +118,7 @@ function SellerHome() {
                 <div>
                   <h3 className="text-sm text-gray-700">
                     <Link to={`/seller/products/${product.id}`}>
-                      <span aria-hidden="true" className="absolute inset-0" />
+                      <span aria-hidden="true" className="absolute inset-0"/>
                       {product.name}
                     </Link>
                   </h3>

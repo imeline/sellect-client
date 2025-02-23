@@ -1,28 +1,30 @@
-import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
 import Home from './pages/Home.jsx';
 import Register from './pages/Register.jsx';
-import ProductList from './pages/ProductList.jsx';
-import ProductDetail from './pages/ProductDetail.jsx';
+import ProductList from './pages/product/ProductList.jsx';
+import ProductDetail from './pages/product/ProductDetail.jsx';
 import Cart from './pages/Cart.jsx';
-import OrderList from './pages/OrderList.jsx';
-import OrderDetail from "./pages/OrderDetail.jsx";
+import OrderList from './pages/order/OrderList.jsx';
+import OrderDetail from "./pages/order/OrderDetail.jsx";
 import CouponDownload from "./pages/CouponDownload.jsx";
 import Profile from "./pages/Profile.jsx";
 import Coupons from "./components/Coupons.jsx";
-import Orders from "./components/Orders.jsx";
-import ProductRegister from './pages/ProductRegister.jsx';
-import SellerHome from './pages/SellerHome.jsx';
+import Orders from "./components/order/Orders.jsx";
+import ProductRegister from './pages/seller/ProductRegister.jsx';
+import SellerHome from './pages/seller/SellerHome.jsx';
 import Login from './pages/Login.jsx';
-import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import {AuthProvider, useAuth} from './context/AuthContext.jsx';
 import Unauthorized from "./pages/Unauthorized.jsx";
-import OrderForm from "./pages/OrderForm.jsx";
+import OrderForm from "./pages/order/OrderForm.jsx";
 import CouponUpload from "./pages/CouponUpload.jsx";
-import SellerDashboard from "./pages/SellerDashboard.jsx";
 import PaymentHistory from "./components/PaymentHistory.jsx";
 import LeaveAccount from "./components/LeaveAccount.jsx";
 import PaymentSuccess from "./pages/PaymentSuccess.jsx";
 import OrderComplete from "./pages/OrderComplete.jsx";
+import SellerDashboard from "./pages/seller/SellerDashboard.jsx";
+import NotFound from "./pages/NotFound.jsx";
+import SellerProductDetail from "./pages/seller/SellerProductDetail.jsx";
 
 function App() {
   return (
@@ -39,9 +41,10 @@ function App() {
 
             {/* SELLER 전용 */}
             <Route path="/seller" element={<RouteGuard component={SellerHome} allowedRoles={['SELLER']} />} />
-            <Route path="/products/register" element={<RouteGuard component={ProductRegister} allowedRoles={['SELLER']} />} />
-            <Route path="/coupon/upload" element={<RouteGuard component={CouponUpload} allowedRoles={['SELLER']} />} />
+            <Route path="/seller/products/register" element={<RouteGuard component={ProductRegister} allowedRoles={['SELLER']} />} />
+            <Route path="/seller/products/:productId" element={<RouteGuard component={SellerProductDetail} allowedRoles={['SELLER']} />} />
             <Route path="/seller/dashboard" element={<RouteGuard component={SellerDashboard} allowedRoles={['SELLER']} />} />
+            <Route path="/coupon/upload" element={<RouteGuard component={CouponUpload} allowedRoles={['SELLER']} />} />
 
             {/* USER 전용 */}
             <Route path="/cart" element={<RouteGuard component={Cart} allowedRoles={['USER']} />} />
@@ -62,7 +65,7 @@ function App() {
             <Route path="/register" element={<RouteGuard component={Register} allowedRoles={['GUEST']} />} />
             <Route path="/login" element={<RouteGuard component={Login} allowedRoles={['GUEST']} />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="*" element={<Navigate to="/unauthorized" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </Router>
