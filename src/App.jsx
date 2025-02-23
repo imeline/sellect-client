@@ -25,6 +25,7 @@ import OrderComplete from "./pages/OrderComplete.jsx";
 import SellerDashboard from "./pages/seller/SellerDashboard.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import SellerProductDetail from "./pages/seller/SellerProductDetail.jsx";
+import ProductEdit from "./pages/seller/ProductEdit.jsx";
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
             {/* SELLER 전용 */}
             <Route path="/seller" element={<RouteGuard component={SellerHome} allowedRoles={['SELLER']} />} />
             <Route path="/seller/products/register" element={<RouteGuard component={ProductRegister} allowedRoles={['SELLER']} />} />
+            <Route path="/seller/products/:productId/edit" element={<RouteGuard component={ProductEdit} allowedRoles={['SELLER']} />} />
             <Route path="/seller/products/:productId" element={<RouteGuard component={SellerProductDetail} allowedRoles={['SELLER']} />} />
             <Route path="/seller/dashboard" element={<RouteGuard component={SellerDashboard} allowedRoles={['SELLER']} />} />
             <Route path="/coupon/upload" element={<RouteGuard component={CouponUpload} allowedRoles={['SELLER']} />} />

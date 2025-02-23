@@ -5,6 +5,8 @@ import PaymentSummary from "../components/order/PaymentSummary";
 import axios from "axios";
 import {useAuth} from "../context/AuthContext.jsx";
 
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 function OrderForm() {
   const [orderItems, setOrderItems] = useState([]);
   const [coupons, setCoupons] = useState([]);
@@ -51,7 +53,7 @@ function OrderForm() {
       }
 
       try {
-        const response = await fetch(`http://localhost:8080/api/v1/orders/${orderId}/pending`, {
+        const response = await fetch(`${VITE_API_BASE_URL}/api/v1/orders/${orderId}/pending`, {
           credentials: 'include',
         });
 
@@ -76,7 +78,7 @@ function OrderForm() {
   const fetchCoupons = async () => {
     setCouponLoading(true);
     try {
-      const response = await fetch(`http://localhost:8080/api/v1/coupons?page=0&size=5&isUsed=false`, {
+      const response = await fetch(`${VITE_API_BASE_URL}/api/v1/coupons?page=0&size=5&isUsed=false`, {
         credentials: 'include',
       });
 
@@ -123,7 +125,7 @@ function OrderForm() {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/payment/ready', {
+      const response = await fetch(`${VITE_API_BASE_URL}/api/v1/payment/ready`, {
         method: 'POST',
         credentials: 'include',
         headers: {
