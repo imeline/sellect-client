@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import OrderHeader from "../../components/order/OrderHeader.jsx";
-import OrderItemsList from "../../components/order/OrderItemsList.jsx";
-import PaymentSummary from "../../components/order/PaymentSummary.jsx";
-import CartOrderItem from "../../components/CartOrderItem.jsx";
+import OrderHeader from "../components/order/OrderHeader.jsx";
+import OrderItemsList from "../components/order/OrderItemsList.jsx";
+import PaymentSummary from "../components/order/PaymentSummary.jsx";
+import CartOrderItem from "../components/CartOrderItem.jsx";
 
 function OrderDetail() {
   const { orderId } = useParams();

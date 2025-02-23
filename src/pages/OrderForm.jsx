@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CartOrderItem from "../components/CartOrderItem";
 import PaymentSummary from "../components/order/PaymentSummary";
+import axios from "axios";
+import {useAuth} from "../context/AuthContext.jsx";
 
 function OrderForm() {
   const [orderItems, setOrderItems] = useState([]);
@@ -12,6 +14,7 @@ function OrderForm() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [error, setError] = useState(null);
   const [couponError, setCouponError] = useState(null);
+  const {updateCartCount} = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -19,8 +22,12 @@ function OrderForm() {
 
   // 결제 성공 메시지 리스너
   useEffect(() => {
-    const handlePaymentMessage = (event) => {
+    const handlePaymentMessage = async (event) => {
       if (event.data === 'PAYMENT_SUCCESS') {
+        const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/carts/count`, {
+          withCredentials: true,
+        });
+        updateCartCount(response.data.result);
         navigate('/order/complete', {
           state: {
             orderId: orderId,
