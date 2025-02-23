@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 
 function OrderHeader({ order, showDetailLink = false, orderNumber }) {
-  const orderDate = new Date(order.created_at);
-  const formattedDate = `${orderDate.getFullYear()}. ${
-    orderDate.getMonth() + 1
-  }. ${orderDate.getDate()}`;
+  const orderDate = order.update_at ? new Date(order.update_at) : null;
+  const formattedDate = orderDate
+    ? `${orderDate.getFullYear()}. ${
+        orderDate.getMonth() + 1
+      }. ${orderDate.getDate()}`
+    : "날짜 없음";
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4">

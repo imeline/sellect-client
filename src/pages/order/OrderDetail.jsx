@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import OrderHeader from "../../components/order/OrderHeader.jsx";
 import OrderItemsList from "../../components/order/OrderItemsList.jsx";
 import PaymentSummary from "../../components/order/PaymentSummary.jsx";
-import CartOrderItem from "../../components/CartOrderItem.jsx";
+import OrderItem from "../../components/order/OrderItem.jsx";
 
 function OrderDetail() {
   const { orderId } = useParams();
@@ -81,7 +81,7 @@ function OrderDetail() {
               {" "}
               {/* OrderItemsList 대신 직접 스타일 적용 */}
               {orderItemsWithImage.map((item) => (
-                <CartOrderItem key={item.product_id} item={item} />
+                <OrderItem key={item.product_id} item={item} />
               ))}
             </div>
           </div>

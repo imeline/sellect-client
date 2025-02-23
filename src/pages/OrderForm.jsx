@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import OrderHeader from "../components/order/OrderHeader";
-import CartOrderItem from "../components/CartOrderItem";
+import CartOrderItem from "../../components/CartOrderItem";
 import {
   fetchOrderDetail,
   getAvailableCoupons,
@@ -9,7 +9,8 @@ import {
 } from "../services/OrderService";
 
 function OrderForm() {
-  const { orderId } = useParams();
+  const { orderId: paramOrderId } = useParams();
+  const orderId = Number(paramOrderId) || 1;
   const navigate = useNavigate();
   const [orderData, setOrderData] = useState(null);
   const [coupons, setCoupons] = useState([]);
@@ -18,6 +19,7 @@ function OrderForm() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    console.log("현재 orderId:", orderId); // ✅ 디버깅용 로그
     if (orderId) {
       fetchOrderDetails();
     } else {
@@ -30,9 +32,10 @@ function OrderForm() {
     try {
       setLoading(true);
       const result = await fetchOrderDetail(orderId);
+      console.log("주문 데이터:", result); // ✅ 데이터 확인용 로그
       const transformedData = {
         order_id: orderId,
-        created_at: new Date().toISOString(), // API에서 제공되면 수정
+        created_at: new Date().toISOString(),
         order_items: result.map((item) => ({
           product_id: item.product_id,
           product_name: item.product_name,
@@ -55,7 +58,7 @@ function OrderForm() {
     try {
       const productIds = orderData.order_items.map((item) => item.product_id);
       const response = await getAvailableCoupons(productIds);
-      setCoupons(response); // getAvailableCoupons가 result만 반환하도록 수정됨
+      setCoupons(response);
     } catch (err) {
       console.error("쿠폰 조회 실패:", err);
     }
@@ -71,14 +74,12 @@ function OrderForm() {
         0
       );
 
-      // 1. 쿠폰 적용 요청 (선택된 쿠폰이 있을 경우만)
       if (selectedCoupon) {
         await axios.post(
           `${API_BASE_URL}/order/${orderId}/applied-coupon/${selectedCoupon.coupon_id}`
         );
       }
 
-      // 2. 결제 준비 요청
       const paymentData = {
         order_id: orderId,
         item_name: orderData.order_items[0].product_name,
@@ -88,7 +89,6 @@ function OrderForm() {
 
       const response = await preparePayment(paymentData);
       console.log("Payment prepared successfully:", response);
-      // 결제 성공 후 리다이렉션 등 추가 처리 필요 시 여기에 구현
     } catch (err) {
       console.error("결제 처리 실패:", err);
       setError("결제 처리 중 오류가 발생했습니다.");
