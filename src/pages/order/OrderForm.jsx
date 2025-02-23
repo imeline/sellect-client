@@ -1,6 +1,6 @@
 import { useState } from "react";
-import CartOrderItem from "../../components/cart/CartOrderItem.jsx";
-import CouponItem from "../../components/coupon/CouponItem.jsx";
+import CartOrderItem from "../../components/CartOrderItem.jsx";
+import CouponItem from "../../components/CouponItem.jsx";
 import PaymentSummary from "../../components/order/PaymentSummary.jsx";
 
 function OrderForm() {

@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCartIcon, HeartIcon, UserIcon, TicketIcon } from "@heroicons/react/24/outline";
-import { useAuth } from "../../context/AuthContext.jsx"; // 수정된 AuthContext 사용
+import { useAuth } from "../context/AuthContext.jsx"; // 수정된 AuthContext 사용
 import SearchBar from "./SearchBar.jsx";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;

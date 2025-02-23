@@ -1,4 +1,4 @@
-import CartOrderItem from "../cart/CartOrderItem.jsx";
+import CartOrderItem from "../CartOrderItem.jsx";
 
 function OrderItemsList({ items }) {
   return (

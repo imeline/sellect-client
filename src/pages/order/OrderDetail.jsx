@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import OrderHeader from "../../components/order/OrderHeader.jsx";
 import OrderItemsList from "../../components/order/OrderItemsList.jsx";
 import PaymentSummary from "../../components/order/PaymentSummary.jsx";
-import CartOrderItem from "../../components/cart/CartOrderItem.jsx";
+import CartOrderItem from "../../components/CartOrderItem.jsx";
 
 function OrderDetail() {
   const { orderId } = useParams();
