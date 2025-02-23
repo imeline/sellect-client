@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
 import Home from './pages/Home.jsx';
 import Register from './pages/Register.jsx';
@@ -14,10 +14,14 @@ import Orders from "./components/order/Orders.jsx";
 import ProductRegister from './pages/seller/ProductRegister.jsx';
 import SellerHome from './pages/seller/SellerHome.jsx';
 import Login from './pages/Login.jsx';
-import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import {AuthProvider, useAuth} from './context/AuthContext.jsx';
 import Unauthorized from "./pages/Unauthorized.jsx";
 import OrderForm from "./pages/order/OrderForm.jsx";
 import CouponUpload from "./pages/CouponUpload.jsx";
+import PaymentHistory from "./components/PaymentHistory.jsx";
+import LeaveAccount from "./components/LeaveAccount.jsx";
+import PaymentSuccess from "./pages/PaymentSuccess.jsx";
+import OrderComplete from "./pages/OrderComplete.jsx";
 import SellerDashboard from "./pages/seller/SellerDashboard.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import SellerProductDetail from "./pages/seller/SellerProductDetail.jsx";
@@ -50,8 +54,12 @@ function App() {
             <Route path="/order/:id" element={<RouteGuard component={OrderDetail} allowedRoles={['USER']} />} />
             <Route path="/user/profile" element={<RouteGuard component={Profile} allowedRoles={['USER']} />}>
               <Route path="orders" element={<RouteGuard component={Orders} allowedRoles={['USER']} />} />
+              <Route path="payment-history" element={<RouteGuard component={PaymentHistory} allowedRoles={['USER']} />} />
               <Route path="coupons" element={<RouteGuard component={Coupons} allowedRoles={['USER']} />} />
+              <Route path="leave" element={<RouteGuard component={LeaveAccount} allowedRoles={['USER']} />} />
             </Route>
+            <Route path="/payment/success" element={<RouteGuard component={PaymentSuccess} allowedRoles={['USER']} />} />
+            <Route path="/order/complete" element={<RouteGuard component={OrderComplete} allowedRoles={['USER']} />} />
 
             {/* 인증 */}
             <Route path="/register" element={<RouteGuard component={Register} allowedRoles={['GUEST']} />} />

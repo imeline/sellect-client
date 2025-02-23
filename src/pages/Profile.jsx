@@ -9,8 +9,14 @@ const Profile = () => {
   // 유저 정보 기본값 설정
   const displayName = user || 'Guest';
   const displayEmail = isLoggedIn || '로그인 후 이용 가능';
-  // const profileImage = user?.profileImage || 'https://via.placeholder.com/150';
+  const profileImage = user?.profileImage || 'https://via.placeholder.com/150';
   const tier = user?.tier || 'Bronze';
+
+  // 버튼 스타일 정의 (결제 내역 스타일 기반)
+  const buttonStyle = (isActive) =>
+      `block py-2 px-4 rounded-md text-gray-700 font-semibold hover:bg-indigo-100 hover:text-indigo-700 transition-all duration-200 border-l-4 ${
+          isActive ? 'bg-indigo-50 text-indigo-700 border-indigo-500' : 'border-transparent'
+      }`;
 
   return (
       <div className="min-h-screen bg-gray-100 flex">
@@ -18,6 +24,7 @@ const Profile = () => {
         <div className="w-64 bg-white shadow-md p-6 flex-shrink-0">
           <div className="flex flex-col items-center mb-8">
             <img
+                src={profileImage}
                 alt="Profile"
                 className="w-20 h-20 rounded-full object-cover mb-4"
             />
@@ -34,35 +41,33 @@ const Profile = () => {
             {isLoggedIn && role === 'USER' ? (
                 <>
                   <Link
-                      to="orders" // 상대 경로
-                      className={`block py-2 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${
-                          location.pathname === '/user/profile/orders' ? 'bg-indigo-100 text-indigo-600' : ''
-                      }`}
+                      to="orders"
+                      className={buttonStyle(location.pathname === '/user/profile/orders')}
                   >
                     주문 내역
                   </Link>
                   <Link
-                      to="coupons" // 상대 경로
-                      className={`block py-2 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${
-                          location.pathname === '/user/profile/coupons' ? 'bg-indigo-100 text-indigo-600' : ''
-                      }`}
+                      to="payment-history"
+                      className={buttonStyle(location.pathname === '/user/profile/payment-history')}
+                  >
+                    결제 내역
+                  </Link>
+                  <Link
+                      to="coupons"
+                      className={buttonStyle(location.pathname === '/user/profile/coupons')}
                   >
                     쿠폰 발급 내역
                   </Link>
                   <Link
-                      to="settings" // 상대 경로
-                      className={`block py-2 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 transition-colors ${
-                          location.pathname === '/user/profile/settings' ? 'bg-indigo-100 text-indigo-600' : ''
+                      to="leave"
+                      className={`block py-2 px-4 rounded-md text-gray-700 font-semibold hover:bg-red-100 hover:text-red-700 transition-all duration-200 border-l-4 ${
+                          location.pathname === '/user/profile/leave'
+                              ? 'bg-red-50 text-red-700 border-red-500'
+                              : 'border-transparent'
                       }`}
                   >
-                    계정 설정
+                    회원탈퇴
                   </Link>
-                  <button
-                      onClick={logout}
-                      className="block w-full py-2 px-4 rounded-md text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors text-left"
-                  >
-                    로그아웃
-                  </button>
                 </>
             ) : (
                 <p className="text-gray-500 text-sm">로그인 후 이용 가능합니다.</p>
