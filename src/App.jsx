@@ -82,9 +82,9 @@ function RouteGuard({ component: Component, allowedRoles, defaultRedirect }) {
   // 권한 체크
   if (!allowedRoles.includes(role)) {
     if (isLoggedIn) {
-      return <Navigate to={role === 'USER' ? '/home' : '/seller'} replace />;
+      return <Navigate to={role === "USER" ? "/home" : "/seller"} replace />;
     }
-    return <Navigate to={defaultRedirect || '/home'} replace />;
+    return <Navigate to={defaultRedirect || "/home"} replace />;
   }
 
   return <Component />;

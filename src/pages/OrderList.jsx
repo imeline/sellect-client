@@ -1,61 +1,51 @@
+import { useEffect, useState } from "react";
 import OrderHeader from "../components/order/OrderHeader.jsx";
-import OrderItemsList from "../components/order/OrderItemsList.jsx";
-import CartOrderItem from "../components/CartOrderItem.jsx";
+import OrderItem from "../components/order/OrderItem.jsx";
 
 function OrderList() {
-  const orders = [
-    {
-      order_id: 1,
-      created_at: "2025-02-18T13:09:34.011366",
-      order_items: [
-        {
-          product_id: 1,
-          product_name: "Product 1",
-          product_price: 29000,
-          brand: "Brand A",
-          quantity: 1,
-          imageUrl: "https://via.placeholder.com/300",
-        },
-        {
-          product_id: 2,
-          product_name: "Product 2",
-          product_price: 39000,
-          brand: "Brand B",
-          quantity: 2,
-          imageUrl: "https://via.placeholder.com/300",
-        },
-      ],
-    },
-    {
-      order_id: 2,
-      created_at: "2025-02-19T13:27:28.330287",
-      order_items: [
-        {
-          product_id: 3,
-          product_name: "Product 3",
-          product_price: 49000,
-          brand: "Brand C",
-          quantity: 1,
-          imageUrl: "https://via.placeholder.com/300",
-        },
-      ],
-    },
-  ];
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/v1/orders", {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error(`주문 리스트 HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.is_success && Array.isArray(data.result)) {
+          setOrders(data.result);
+        } else {
+          throw new Error(
+            data.message || "주문 리스트 데이터를 불러오는 데 실패했습니다."
+          );
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div>오류 발생: {error}</div>;
 
   return (
     <div className="pt-12 bg-gray-50 min-h-screen">
-      {" "}
-      {/* pt-16 -> pt-12 */}
       <div className="max-w-3xl mx-auto px-4 py-8">
-        {" "}
-        {/* max-w-7xl -> max-w-3xl, py-12 -> py-8 */}
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          주문 내역
-        </h2>{" "}
-        {/* mb-6 -> mb-4 */}
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">주문 내역</h2>
         <div className="space-y-6">
-          {" "}
-          {/* space-y-8 -> space-y-6 */}
           {orders.map((order) => (
             <div
               key={order.order_id}
@@ -66,10 +56,8 @@ function OrderList() {
               </div>
               <div className="border-b border-gray-200 mt-0 mb-4"></div>
               <div className="flex flex-col gap-4">
-                {" "}
-                {/* OrderItemsList 대신 직접 스타일 적용 */}
                 {order.order_items.map((item) => (
-                  <CartOrderItem key={item.product_id} item={item} />
+                  <OrderItem key={item.product_id} item={item} />
                 ))}
               </div>
             </div>
