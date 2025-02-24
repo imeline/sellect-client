@@ -16,7 +16,7 @@ function OrderForm() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const orderId = location.state?.orderId; // ✅ `state`에서 `orderId` 가져오기
+  const orderId = location.state?.orderId;
 
   // 결제 성공 메시지 리스너
   useEffect(() => {
@@ -69,23 +69,40 @@ function OrderForm() {
 
   // 쿠폰 가져오기
   const fetchCoupons = async () => {
+    console.log("쿠폰 가져오기");
+    if (orderItems.length === 0) {
+      setCouponError("주문 상품이 준비되지 않았습니다.");
+      return;
+    }
+
     setCouponLoading(true);
     try {
-      const response = await fetch(
-          `http://localhost:8080/api/v1/coupons?page=0&size=5&isUsed=false`,
-          { credentials: "include" }
-      );
+      const productIds = orderItems.map((item) => item.product_id);
+      const params = new URLSearchParams();
+      productIds.forEach((id) => params.append("productIds", id));
+      const url = `http://localhost:8080/api/v1/coupon/possible-order?${params.toString()}`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
         throw new Error("쿠폰을 불러오지 못했습니다.");
       }
 
       const data = await response.json();
+      console.log("쿠폰 데이터:", data);
       setCoupons(data?.result || []);
       setShowCoupons(true);
     } catch (err) {
+      console.error("쿠폰 로딩 실패:", err);
       setCouponError(err.message);
     } finally {
+      console.log("coupon loading done");
       setCouponLoading(false);
     }
   };
@@ -95,7 +112,7 @@ function OrderForm() {
       (acc, item) => acc + parseFloat(item.product_price) * item.quantity,
       0
   );
-  const discount = coupon ? coupon.discount : 0;
+  const discount = coupon ? coupon.discount_cost : 0; // discount → discount_cost
   const finalPrice = totalPrice - discount;
 
   // 쿠폰 적용
@@ -122,17 +139,14 @@ function OrderForm() {
     };
 
     try {
-      const response = await fetch(
-          "http://localhost:8080/api/v1/payment/ready",
-          {
-            method: "POST",
-            credentials: "include",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(paymentData),
-          }
-      );
+      const response = await fetch("http://localhost:8080/api/v1/payment/ready", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(paymentData),
+      });
 
       if (!response.ok) {
         throw new Error("결제 준비에 실패했습니다.");
@@ -195,9 +209,19 @@ function OrderForm() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
                   <div className="bg-white p-6 rounded-lg max-w-md w-full">
                     <h3 className="text-lg font-semibold mb-4">사용 가능한 쿠폰</h3>
-                    {coupons.map((couponItem) => (
-                        <CouponItem key={couponItem.id} coupon={couponItem} applyCoupon={applyCoupon} />
-                    ))}
+                    {couponError ? (
+                        <div className="text-red-600">{couponError}</div>
+                    ) : coupons.length === 0 ? (
+                        <div className="text-gray-500">사용 가능한 쿠폰이 없습니다.</div>
+                    ) : (
+                        coupons.map((couponItem) => (
+                            <CouponItem
+                                key={couponItem.user_received_coupon_id} // id → user_received_coupon_id
+                                coupon={couponItem}
+                                applyCoupon={applyCoupon}
+                            />
+                        ))
+                    )}
                     <button
                         className="mt-4 w-full py-2 bg-gray-200 rounded-full"
                         onClick={() => setShowCoupons(false)}
