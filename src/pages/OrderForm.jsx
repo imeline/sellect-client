@@ -69,7 +69,6 @@ function OrderForm() {
 
   // 쿠폰 가져오기
   const fetchCoupons = async () => {
-    console.log("쿠폰 가져오기");
     if (orderItems.length === 0) {
       setCouponError("주문 상품이 준비되지 않았습니다.");
       return;
@@ -95,14 +94,11 @@ function OrderForm() {
       }
 
       const data = await response.json();
-      console.log("쿠폰 데이터:", data);
       setCoupons(data?.result || []);
       setShowCoupons(true);
     } catch (err) {
-      console.error("쿠폰 로딩 실패:", err);
       setCouponError(err.message);
     } finally {
-      console.log("coupon loading done");
       setCouponLoading(false);
     }
   };
@@ -112,7 +108,7 @@ function OrderForm() {
       (acc, item) => acc + parseFloat(item.product_price) * item.quantity,
       0
   );
-  const discount = coupon ? coupon.discount_cost : 0; // discount → discount_cost
+  const discount = coupon ? coupon.discount_cost : 0;
   const finalPrice = totalPrice - discount;
 
   // 쿠폰 적용
@@ -121,7 +117,7 @@ function OrderForm() {
     setShowCoupons(false);
   };
 
-  // 결제 처리
+  // 결제 처리 (팝업 방식)
   const handlePayment = async () => {
     if (!orderItems.length) {
       alert("주문 상품이 없습니다.");
@@ -153,11 +149,15 @@ function OrderForm() {
       }
 
       const data = await response.json();
-      const redirectUrl = data.result;
-      const newWindow = window.open(redirectUrl, "_blank", "width=500,height=700");
+      const redirectUrl = data.result; // body에서 redirectUrl 사용
 
-      if (!newWindow) {
-        alert("결제 창이 차단되었습니다. 브라우저 설정에서 팝업을 허용해 주세요.");
+      const paymentWindow = window.open(
+          redirectUrl,
+          "paymentPopup",
+          "width=500,height=700,scrollbars=yes"
+      );
+      if (!paymentWindow) {
+        alert("팝업 차단을 해제해주세요.");
       }
     } catch (err) {
       console.error("결제 준비 실패:", err);
@@ -216,7 +216,7 @@ function OrderForm() {
                     ) : (
                         coupons.map((couponItem) => (
                             <CouponItem
-                                key={couponItem.user_received_coupon_id} // id → user_received_coupon_id
+                                key={couponItem.user_received_coupon_id}
                                 coupon={couponItem}
                                 applyCoupon={applyCoupon}
                             />
@@ -234,12 +234,14 @@ function OrderForm() {
 
             {/* 결제 요약 및 버튼 */}
             <PaymentSummary totalPrice={totalPrice} discount={discount} finalPrice={finalPrice} />
-            <button
-                className="w-full mt-6 py-2.5 bg-indigo-600 text-white font-semibold rounded-md text-base hover:bg-indigo-700 transition"
-                onClick={handlePayment}
-            >
-              결제하기
-            </button>
+            <div className="mt-6 flex justify-end">
+              <button
+                  className="px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition"
+                  onClick={handlePayment}
+              >
+                결제하기
+              </button>
+            </div>
           </div>
         </div>
       </div>
