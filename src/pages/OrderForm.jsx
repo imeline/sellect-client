@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import {useLocation, useNavigate} from "react-router-dom";
 import CartOrderItem from "../components/order/OrderItem.jsx";
 import CouponItem from "../components/CouponItem";
 import PaymentSummary from "../components/order/PaymentSummary";
+
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function OrderForm() {
   const [orderItems, setOrderItems] = useState([]);
@@ -46,8 +48,8 @@ function OrderForm() {
     const fetchOrderItems = async () => {
       try {
         const response = await fetch(
-            `http://localhost:8080/api/v1/orders/${orderId}/pending`,
-            { credentials: "include" }
+            `${VITE_API_BASE_URL}/api/v1/orders/${orderId}/pending`,
+            {credentials: "include"}
         );
 
         if (!response.ok) {
@@ -79,7 +81,7 @@ function OrderForm() {
       const productIds = orderItems.map((item) => item.product_id);
       const params = new URLSearchParams();
       productIds.forEach((id) => params.append("productIds", id));
-      const url = `http://localhost:8080/api/v1/coupon/possible-order?${params.toString()}`;
+      const url = `${VITE_API_BASE_URL}/api/v1/coupon/possible-order?${params.toString()}`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -135,14 +137,15 @@ function OrderForm() {
     };
 
     try {
-      const response = await fetch("http://localhost:8080/api/v1/payment/ready", {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(paymentData),
-      });
+      const response = await fetch(`${VITE_API_BASE_URL}/api/v1/payment/ready`,
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(paymentData),
+          });
 
       if (!response.ok) {
         throw new Error("결제 준비에 실패했습니다.");
@@ -167,15 +170,19 @@ function OrderForm() {
 
   if (loading) {
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center text-gray-500 text-lg animate-pulse">로딩 중...</div>
+        <div
+            className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center text-gray-500 text-lg animate-pulse">로딩
+            중...
+          </div>
         </div>
     );
   }
 
   if (error) {
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div
+            className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center text-red-600 text-lg">{error}</div>
         </div>
     );
@@ -185,11 +192,12 @@ function OrderForm() {
       <div className="pt-12 bg-gray-50 min-h-screen">
         <div className="max-w-3xl mx-auto px-4 py-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">주문서</h1>
-          <div className="bg-white p-6 rounded-lg shadow-md border-t border-gray-200">
+          <div
+              className="bg-white p-6 rounded-lg shadow-md border-t border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">주문 상품</h3>
             <div className="flex flex-col gap-4">
               {orderItems.map((item) => (
-                  <CartOrderItem key={item.product_id} item={item} />
+                  <CartOrderItem key={item.product_id} item={item}/>
               ))}
             </div>
 
@@ -206,7 +214,8 @@ function OrderForm() {
 
             {/* 쿠폰 모달 */}
             {showCoupons && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+                <div
+                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
                   <div className="bg-white p-6 rounded-lg max-w-md w-full">
                     <h3 className="text-lg font-semibold mb-4">사용 가능한 쿠폰</h3>
                     {couponError ? (
@@ -233,7 +242,8 @@ function OrderForm() {
             )}
 
             {/* 결제 요약 및 버튼 */}
-            <PaymentSummary totalPrice={totalPrice} discount={discount} finalPrice={finalPrice} />
+            <PaymentSummary totalPrice={totalPrice} discount={discount}
+                            finalPrice={finalPrice}/>
             <div className="mt-6 flex justify-end">
               <button
                   className="px-4 py-2.5 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition"

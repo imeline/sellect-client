@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import OrderHeader from "../components/order/OrderHeader.jsx";
 import OrderItem from "../components/order/OrderItem.jsx";
 
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 function OrderList() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,7 +11,7 @@ function OrderList() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/v1/orders", {
+        const response = await fetch(`${VITE_API_BASE_URL}/api/v1/orders`, {
           method: "GET",
           credentials: "include",
         });
