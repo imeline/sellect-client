@@ -14,7 +14,8 @@ function OrderDetail() {
     const fetchOrderDetail = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8080/api/v1/orders/${orderId}`,
+          `http://localhost:8080/api/v1/orders/${orderId}/pending`,
+
           {
             method: "GET",
             credentials: "include",

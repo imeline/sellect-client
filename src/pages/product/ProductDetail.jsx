@@ -1,9 +1,9 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ShoppingCartIcon } from "@heroicons/react/24/solid";
-import {useAuth} from "../../context/AuthContext.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -19,7 +19,14 @@ export default function ProductDetail() {
     const fetchProductDetail = async () => {
       try {
         const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/products/${productId}`);
-        setProduct(response.data.result);
+        const fetchedProduct = response.data.result;
+
+        // sequence 기준으로 이미지 정렬
+        if (fetchedProduct.images) {
+          fetchedProduct.images.sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+        }
+
+        setProduct(fetchedProduct);
       } catch (error) {
         console.error("Error fetching product:", error);
       }
@@ -70,7 +77,6 @@ export default function ProductDetail() {
           withCredentials: true,
         }
       );
-
       navigate(`/order/${response.data.result.order_id}`);
     } catch (error) {
       console.error("Error placing order:", error);
@@ -87,12 +93,25 @@ export default function ProductDetail() {
       ? product.images.find((img) => img.representative)?.image_url || product.images[0].image_url
       : "https://via.placeholder.com/400";
 
+  // TODO: 아마존 데이터셋에서 resizing 되지 않은 이미지들은 "SL"을 포함하는 이미지만 사용하도록 로직을 작성했지만,
+  //  아마존 데이터셋이 아닌 직접 등록한 이미지에 대해서는 이를 적용하지 않아야 한다.
   const detailImages =
     product.images && product.images.length > 0
       ? product.images
-        .filter((img) => !img.representative && img.image_url.includes("SL")) // TODO: 리사이징된 이미지 중 선택적으로 표시
+        .filter((img) => !img.representative
+          && !img.image_url.includes("m.media-amazon.com")
+          || ((img.image_url.includes("m.media-amazon.com") && img.image_url.includes("SL"))))
         .map((img) => img.image_url)
       : [];
+
+  // 카테고리 경로 생성
+  const categoryPath = [
+    product.large_category_name,
+    product.medium_category_name,
+    product.small_category_name,
+  ]
+    .filter(Boolean)
+    .join(" > ") || "미지정";
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24 py-12 px-4 sm:px-6 lg:px-8">
@@ -113,16 +132,15 @@ export default function ProductDetail() {
 
               <div className="text-sm text-gray-600 mb-4 space-y-1">
                 <p>
-                  <span className="font-medium text-gray-800">카테고리:</span>{" "}
-                  {product["category_name"] || "미지정"}
+                  <span className="font-medium text-gray-800">카테고리:</span> {categoryPath}
                 </p>
                 <p>
                   <span className="font-medium text-gray-800">브랜드:</span>{" "}
-                  {product["brand_name"] || "미지정"}
+                  {product.brand_name || "미지정"}
                 </p>
                 <p>
                   <span className="font-medium text-gray-800">판매자:</span>{" "}
-                  {product["seller_name"] || "미지정"}
+                  {product.seller_name || "미지정"}
                 </p>
               </div>
 
