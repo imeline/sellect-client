@@ -71,7 +71,11 @@ export default function ProductDetail() {
         }
       );
 
-      navigate(`/order/${response.data.result.order_id}`);
+      const orderId = response.data.result.order_id; // ✅ 주문 ID 추출
+      console.log("✅ 바로 주문 버튼을 통해 생성된 주문 ID:", orderId);
+
+      navigate("/order/form", { state: { orderId } }); // ✅ 주문 페이지로 이동 & state에 orderId 전달
+
     } catch (error) {
       console.error("Error placing order:", error);
       alert("주문에 실패했습니다. 잠시 후 다시 시도해주세요.");
