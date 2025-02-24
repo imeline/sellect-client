@@ -17,7 +17,14 @@ export default function SellerProductDetail() {
         const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/seller/products/${productId}`, {
           withCredentials: true,
         });
-        setProductDetail(response.data.result || null);
+        const fetchedProduct = response.data.result || null;
+
+        // sequence 기준으로 이미지 정렬
+        if (fetchedProduct && fetchedProduct.images) {
+          fetchedProduct.images.sort((a, b) => (a.sequence || 0) - (b.sequence || 0));
+        }
+
+        setProductDetail(fetchedProduct);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching product detail:", err);
@@ -73,6 +80,15 @@ export default function SellerProductDetail() {
       ? productDetail.images.filter((img) => !img.representative).map((img) => img.image_url)
       : [];
 
+  // 카테고리 경로 생성
+  const categoryPath = [
+    productDetail.large_category_name,
+    productDetail.medium_category_name,
+    productDetail.small_category_name,
+  ]
+    .filter(Boolean)
+    .join(" > ") || "미지정";
+
   return (
     <div className="min-h-screen bg-gray-50 pt-16 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
@@ -105,8 +121,7 @@ export default function SellerProductDetail() {
                   <span className="font-medium text-gray-800">상품 ID:</span> {productDetail.product_id || "N/A"}
                 </p>
                 <p>
-                  <span className="font-medium text-gray-800">카테고리:</span>{" "}
-                  {productDetail.category_name || "미지정"}
+                  <span className="font-medium text-gray-800">카테고리:</span> {categoryPath}
                 </p>
                 <p>
                   <span className="font-medium text-gray-800">브랜드:</span>{" "}

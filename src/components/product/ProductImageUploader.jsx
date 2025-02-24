@@ -4,20 +4,20 @@ function ProductImageUploader({ onImagesChange }) {
   const [images, setImages] = useState([]);
   const [dragOver, setDragOver] = useState(false);
 
-  const handleFiles = useCallback((files) => {
-    // file (이미지 파일)
-    // -> 1. image context (target, prev, next)
-    // -> 2. file (원본 파일)
-    const newImages = Array.from(files).map((file) => ({
-      file,
-      url: URL.createObjectURL(file),
-    }));
-    setImages((prev) => {
-      const updatedImages = [...prev, ...newImages];
-      onImagesChange(updatedImages.map((img) => img.file));
-      return updatedImages;
-    });
-  }, [onImagesChange]);
+  const handleFiles = useCallback(
+    (files) => {
+      const newImages = Array.from(files).map((file) => ({
+        file,
+        url: URL.createObjectURL(file),
+      }));
+      setImages((prev) => {
+        const updatedImages = [...prev, ...newImages];
+        onImagesChange(updatedImages.map((img) => img.file));
+        return updatedImages;
+      });
+    },
+    [onImagesChange]
+  );
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -93,21 +93,6 @@ function ProductImageUploader({ onImagesChange }) {
           </ul>
         )}
       </div>
-
-      {/* 이미지 미리보기 */}
-      {images.length > 0 && (
-        <div className="mt-6 space-y-6">
-          {images.map((image, index) => (
-            <div key={index} className="flex items-start gap-4">
-              <img
-                src={image.url}
-                alt={`Uploaded ${index + 1}`}
-                className="w-full h-auto object-contain rounded-lg border border-gray-200"
-              />
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

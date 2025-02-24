@@ -3,15 +3,14 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import ProductImageUploader from "../../components/product/ProductImageUploader.jsx";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function ProductEdit() {
   const navigate = useNavigate();
-  const { productId } = useParams(); // URL에서 productId 가져오기
+  const { productId } = useParams();
 
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
   const [formData, setFormData] = useState({
     largeCategoryId: "",
     mediumCategoryId: "",
@@ -21,43 +20,63 @@ function ProductEdit() {
     name: "",
     description: "",
     stock: "",
-    images: [], // 새로 추가할 이미지
-    existingImages: [], // 기존 이미지 (서버에서 가져옴)
+    images: [],
+    existingImages: [],
   });
 
+  const [categoryNames, setCategoryNames] = useState({
+    large: "",
+    medium: "",
+    small: "",
+  });
+  const [brandName, setBrandName] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
+  const [previewImages, setPreviewImages] = useState([]);
+  const [deletedImageIds, setDeletedImageIds] = useState([]);
 
-  // 초기 데이터 로드
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // 카테고리 가져오기
-        const categoryResponse = await axios.get(`${VITE_API_BASE_URL}/api/v1/categories`);
-        setCategories(categoryResponse.data.result);
-
-        // 브랜드 가져오기
-        const brandResponse = await axios.get(`${VITE_API_BASE_URL}/api/v1/brands`);
-        setBrands(brandResponse.data.result);
-
-        // 기존 상품 데이터 가져오기
         const productResponse = await axios.get(`${VITE_API_BASE_URL}/api/v1/seller/products/${productId}`, {
           withCredentials: true,
         });
         const product = productResponse.data.result;
 
         setFormData({
-          largeCategoryId: product.category_large_id || "", // 대분류 ID (가정)
-          mediumCategoryId: product.category_medium_id || "", // 중분류 ID (가정)
-          categoryId: product.category_id || "",
-          brandId: product.brand_id || "",
-          price: product.price || "",
+          largeCategoryId: product.category_id ? String(product.category_id) : "",
+          mediumCategoryId: "",
+          categoryId: product.category_id ? String(product.category_id) : "",
+          brandId: product.brand_id ? String(product.brand_id) : "",
+          price: String(product.price || ""),
           name: product.name || "",
           description: product.description || "",
-          stock: product.stock || "",
-          images: [], // 새 이미지 업로드용 초기화
-          existingImages: product.images || [], // 기존 이미지 유지
+          stock: String(product.stock || ""),
+          images: [],
+          existingImages: product.images || [],
         });
+
+        setCategoryNames({
+          large: product.large_category_name || "",
+          medium: product.medium_category_name || "",
+          small: product.small_category_name || "",
+        });
+        setBrandName(product.brand_name || "");
+
+        // sequence 기준으로 정렬된 previewImages 설정
+        setPreviewImages(
+          product.images
+            ? product.images
+              .sort((a, b) => (a.sequence || 0) - (b.sequence || 0)) // sequence로 정렬
+              .map((img) => ({
+                id: uuidv4(),
+                product_image_id: img.product_image_id,
+                url: img.image_url,
+                sequence: img.sequence || 0, // sequence 필드 추가
+                isExisting: true,
+              }))
+            : []
+        );
       } catch (error) {
         console.error("Error fetching data:", error);
         setErrors({ fetch: "데이터를 불러오는데 실패했습니다." });
@@ -68,7 +87,6 @@ function ProductEdit() {
     fetchData();
   }, [productId]);
 
-  // 입력값 변경 핸들러
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -86,34 +104,71 @@ function ProductEdit() {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === "largeCategoryId" && { mediumCategoryId: "", categoryId: "" }),
-      ...(name === "mediumCategoryId" && { categoryId: "" }),
     }));
   };
 
-  // 이미지 변경 핸들러 (새 이미지 추가)
-  const handleImagesChange = (images) => {
+  const handleImagesChange = (newImages) => {
+    console.log("handleImagesChange: ", newImages);
     setFormData((prev) => ({
       ...prev,
-      images: images,
+      images: newImages,
     }));
+    const newPreviewImages = newImages.map((file) => ({
+      id: uuidv4(),
+      product_image_id: null,
+      url: URL.createObjectURL(file),
+      file: file,
+      isExisting: false,
+      uuid: uuidv4(),
+      sequence: previewImages.length + 1, // 새 이미지의 초기 sequence는 마지막 순서 + 1
+    }));
+    setPreviewImages([...previewImages.filter((img) => img.isExisting), ...newPreviewImages]);
   };
 
-  // 기존 이미지 삭제 핸들러
-  const handleRemoveExistingImage = (imageUrl) => {
+  const handleRemoveImage = (imageId) => {
+    const removedImage = previewImages.find((img) => img.id === imageId);
+    if (removedImage && removedImage.isExisting) {
+      setDeletedImageIds((prev) => [...prev, removedImage.product_image_id]);
+    }
     setFormData((prev) => ({
       ...prev,
-      existingImages: prev.existingImages.filter((img) => img.image_url !== imageUrl),
+      existingImages: prev.existingImages.filter((img) => img.image_url !== removedImage?.url),
+      images: prev.images.filter((img) => !removedImage?.file || img !== removedImage.file),
+    }));
+    setPreviewImages((prev) => prev.filter((img) => img.id !== imageId));
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const newPreviewImages = [...previewImages];
+    const [reorderedImage] = newPreviewImages.splice(result.source.index, 1);
+    newPreviewImages.splice(result.destination.index, 0, reorderedImage);
+
+    // sequence 재설정
+    newPreviewImages.forEach((img, index) => {
+      img.sequence = index + 1;
+    });
+
+    setPreviewImages(newPreviewImages);
+
+    const newExistingImages = newPreviewImages
+      .filter((img) => img.isExisting)
+      .map((img) => ({ image_url: img.url, product_image_id: img.product_image_id, sequence: img.sequence }));
+    const newImages = newPreviewImages
+      .filter((img) => !img.isExisting)
+      .map((img) => img.file);
+    setFormData((prev) => ({
+      ...prev,
+      existingImages: newExistingImages,
+      images: newImages,
     }));
   };
 
-  // 폼 제출 핸들러
-  const handleSubmit = async (e) => {
+  const handleInfoSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
-    if (!formData.categoryId) newErrors.categoryId = "소분류 카테고리를 선택해주세요.";
-    if (!formData.brandId) newErrors.brandId = "브랜드를 선택해주세요.";
     if (!formData.price) newErrors.price = "가격은 필수 입력값입니다.";
     else if (!/^[0-9]+$/.test(formData.price)) newErrors.price = "가격은 정수만 입력 가능합니다.";
     else if (parseInt(formData.price) <= 0) newErrors.price = "가격은 1원 이상이어야 합니다.";
@@ -121,31 +176,12 @@ function ProductEdit() {
     else if (formData.name.length < 10) newErrors.name = "상품명은 최소 10글자 이상이어야 합니다.";
     if (!formData.stock) newErrors.stock = "재고는 필수 입력값입니다.";
     else if (parseInt(formData.stock) < 1) newErrors.stock = "재고는 1 이상이어야 합니다.";
-    if (formData.images.length + formData.existingImages.length === 0)
-      newErrors.images = "이미지를 최소 1개 이상 업로드해주세요.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    // FormData 객체 구성
-    const formDataToSend = new FormData();
-
-    // 이미지 컨텍스트 구성
-    const allImages = [
-      ...formData.existingImages.map((img) => ({ ...img, isExisting: true })),
-      ...formData.images.map((file) => ({ file, target: uuidv4(), isExisting: false })),
-    ];
-
-    const imageContexts = allImages.map((image, index) => ({
-      target: image.isExisting ? image.image_url : image.target,
-      prev: index === 0 ? null : (allImages[index - 1].isExisting ? allImages[index - 1].image_url : allImages[index - 1].target),
-      next: index === allImages.length - 1 ? null : (allImages[index + 1].isExisting ? allImages[index + 1].image_url : allImages[index + 1].target),
-      is_representative: index === 0,
-    }));
-
-    // ProductUpdateRequest 객체 구성
     const updateRequest = {
       productId: productId,
       category_id: formData.categoryId,
@@ -154,34 +190,79 @@ function ProductEdit() {
       name: formData.name,
       description: formData.description,
       stock: formData.stock,
-      image_contexts: imageContexts,
+    };
+
+    try {
+      const response = await axios.patch(`${VITE_API_BASE_URL}/api/v1/products/${productId}`, updateRequest, {
+        withCredentials: true,
+      });
+      if (response.status === 200) {
+        navigate("/seller/dashboard");
+      }
+      alert("상품 정보가 수정되었습니다.");
+    } catch (error) {
+      console.error("상품 정보 수정 중 오류:", error);
+    }
+  };
+
+  const handleImageSubmit = async (e) => {
+    e.preventDefault();
+    const newErrors = {};
+
+    if (previewImages.length === 0) {
+      newErrors.images = "이미지를 최소 1개 이상 업로드해주세요.";
+      setErrors(newErrors);
+      return;
+    }
+
+    const formDataToSend = new FormData();
+
+    const productImageIdsToDelete = deletedImageIds;
+
+    const productImagesToUpdate = previewImages.map((image, index) => ({
+      product_image_id: image.isExisting ? image.product_image_id : null,
+      sequence: image.sequence, // API 요청에 sequence 반영
+      uuid: image.isExisting ? null : image.uuid,
+      is_representative: index === 0,
+      is_new_image: !image.isExisting,
+    }));
+
+    const updateImageRequest = {
+      product_id: Number(productId),
+      product_image_ids_to_delete: productImageIdsToDelete,
+      product_images_to_update: productImagesToUpdate,
     };
 
     formDataToSend.append(
-      "update_request",
-      new Blob([JSON.stringify(updateRequest)], { type: "application/json" })
+      "modify_request",
+      new Blob([JSON.stringify(updateImageRequest)], { type: "application/json" })
     );
 
-    // 새 이미지 파일 추가
     formData.images.forEach((file) => {
       const fileExtension = file.name.split(".").pop();
-      formDataToSend.append("images", new File([file], `${uuidv4()}.${fileExtension}`, { type: file.type }));
+      const matchingPreview = previewImages.find((img) => !img.isExisting && img.file === file);
+      const uuid = matchingPreview ? matchingPreview.uuid : uuidv4();
+      formDataToSend.append("images", new File([file], `${uuid}.${fileExtension}`, { type: file.type }));
     });
 
-    console.log("상품 수정 요청:", updateRequest);
+    console.log("이미지 수정 요청:", updateImageRequest);
 
     try {
-      const response = await axios.put(`${VITE_API_BASE_URL}/api/v1/seller/products/${productId}`, formDataToSend, {
+      const response = await axios.put(`${VITE_API_BASE_URL}/api/v1/products/images`, formDataToSend, {
         withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
-
-      if (response.status === 200) {
+      if (response.data.is_success) {
         navigate("/seller/dashboard");
+        alert("이미지가 성공적으로 수정되었습니다.");
       } else {
-        console.error("상품 수정 실패");
+        alert("이미지 수정에 실패했습니다: ", response.data.message);
       }
     } catch (error) {
-      console.error("상품 수정 중 오류:", error);
+      console.error("이미지 수정 중 오류:", error);
+      alert("이미지 수정에 실패했습니다.");
     }
   };
 
@@ -195,7 +276,6 @@ function ProductEdit() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
       <div className="bg-indigo-50 py-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -207,107 +287,48 @@ function ProductEdit() {
             </p>
           </div>
 
-          {/* Main Content */}
           <div className="flex mt-12">
-            {/* Left: 상품 정보 입력 */}
+            {/* Left: 상품 정보 수정 */}
             <div className="w-1/2 pr-6">
               <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100">
                 <h2 className="text-2xl font-bold text-gray-900 mb-8">상품 정보 수정</h2>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* 카테고리 선택 */}
+                <form onSubmit={handleInfoSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div>
-                      <label htmlFor="largeCategoryId" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="largeCategory" className="block text-sm font-medium text-gray-700">
                         대분류
                       </label>
-                      <select
-                        name="largeCategoryId"
-                        id="largeCategoryId"
-                        value={formData.largeCategoryId}
-                        onChange={handleChange}
-                        className="mt-1 block w-full rounded-lg border border-gray-200 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-                      >
-                        <option value="">선택</option>
-                        {categories.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="mt-1 block w-full rounded-lg border border-gray-200 bg-gray-100 py-2 px-3 text-sm text-gray-900">
+                        {categoryNames.large || "미지정"}
+                      </div>
                     </div>
                     <div>
-                      <label htmlFor="mediumCategoryId" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="mediumCategory" className="block text-sm font-medium text-gray-700">
                         중분류
                       </label>
-                      <select
-                        name="mediumCategoryId"
-                        id="mediumCategoryId"
-                        value={formData.mediumCategoryId}
-                        onChange={handleChange}
-                        disabled={!formData.largeCategoryId}
-                        className="mt-1 block w-full rounded-lg border border-gray-200 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-                      >
-                        <option value="">선택</option>
-                        {formData.largeCategoryId &&
-                          categories
-                            .find((cat) => cat.id === Number(formData.largeCategoryId))
-                            ?.children.map((child) => (
-                            <option key={child.id} value={child.id}>
-                              {child.name}
-                            </option>
-                          ))}
-                      </select>
+                      <div className="mt-1 block w-full rounded-lg border border-gray-200 bg-gray-100 py-2 px-3 text-sm text-gray-900">
+                        {categoryNames.medium || "미지정"}
+                      </div>
                     </div>
                     <div>
-                      <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700">
+                      <label htmlFor="category" className="block text-sm font-medium text-gray-700">
                         소분류
                       </label>
-                      <select
-                        name="categoryId"
-                        id="categoryId"
-                        value={formData.categoryId}
-                        onChange={handleChange}
-                        disabled={!formData.mediumCategoryId}
-                        className="mt-1 block w-full rounded-lg border border-gray-200 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-                      >
-                        <option value="">선택</option>
-                        {formData.mediumCategoryId &&
-                          categories
-                            .find((cat) => cat.id === Number(formData.largeCategoryId))
-                            ?.children.find((child) => child.id === Number(formData.mediumCategoryId))
-                            ?.children.map((subChild) => (
-                            <option key={subChild.id} value={subChild.id}>
-                              {subChild.name}
-                            </option>
-                          ))}
-                      </select>
-                      {errors.categoryId && <p className="mt-1 text-sm text-red-600">{errors.categoryId}</p>}
+                      <div className="mt-1 block w-full rounded-lg border border-gray-200 bg-gray-100 py-2 px-3 text-sm text-gray-900">
+                        {categoryNames.small || "미지정"}
+                      </div>
                     </div>
                   </div>
 
-                  {/* 브랜드 선택 */}
                   <div>
-                    <label htmlFor="brandId" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="brand" className="block text-sm font-medium text-gray-700">
                       브랜드
                     </label>
-                    <select
-                      name="brandId"
-                      id="brandId"
-                      value={formData.brandId}
-                      onChange={handleChange}
-                      className="mt-1 block w-full rounded-lg border border-gray-200 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
-                    >
-                      <option value="">선택</option>
-                      {brands.map((brand) => (
-                        <option key={brand.id} value={brand.id}>
-                          {brand.name}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.brandId && <p className="mt-1 text-sm text-red-600">{errors.brandId}</p>}
+                    <div className="mt-1 block w-full rounded-lg border border-gray-200 bg-gray-100 py-2 px-3 text-sm text-gray-900">
+                      {brandName || "미지정"}
+                    </div>
                   </div>
 
-                  {/* 가격 */}
                   <div>
                     <label htmlFor="price" className="block text-sm font-medium text-gray-700">
                       가격 (원)
@@ -323,7 +344,6 @@ function ProductEdit() {
                     {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
                   </div>
 
-                  {/* 상품명 */}
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                       상품명
@@ -339,7 +359,6 @@ function ProductEdit() {
                     {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
                   </div>
 
-                  {/* 설명 */}
                   <div>
                     <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                       상품 설명
@@ -354,7 +373,6 @@ function ProductEdit() {
                     />
                   </div>
 
-                  {/* 재고 */}
                   <div>
                     <label htmlFor="stock" className="block text-sm font-medium text-gray-700">
                       재고
@@ -371,7 +389,6 @@ function ProductEdit() {
                     {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
                   </div>
 
-                  {/* 제출 버튼 */}
                   <div className="flex justify-end gap-4">
                     <Link
                       to="/seller/products"
@@ -383,42 +400,106 @@ function ProductEdit() {
                       type="submit"
                       className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition duration-150 ease-in-out"
                     >
-                      상품 수정
+                      정보 수정
                     </button>
                   </div>
                 </form>
               </div>
             </div>
 
-            {/* Right: 이미지 업로드 및 기존 이미지 표시 */}
+            {/* Right: 이미지 수정 */}
             <div className="w-1/2 pl-6">
-              <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100 h-[calc(100vh-20rem)] overflow-y-auto">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">기존 이미지</h3>
-                {formData.existingImages.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-4 mb-6">
-                    {formData.existingImages.map((image, index) => (
-                      <div key={index} className="relative">
-                        <img
-                          src={image.image_url}
-                          alt={`기존 이미지 ${index + 1}`}
-                          className="w-full h-32 object-contain rounded-md shadow-sm"
-                        />
-                        <button
-                          onClick={() => handleRemoveExistingImage(image.image_url)}
-                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center hover:bg-red-700 transition duration-150 ease-in-out"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
+              <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100 h-[calc(100vh-10rem)] overflow-y-auto">
+                <h2 className="text-2xl font-bold text-gray-900 mb-8">상품 이미지 수정</h2>
+                <form onSubmit={handleImageSubmit}>
+                  {/* 작은 이미지로 순서 변경 */}
+                  {previewImages.length > 0 && (
+                    <div className="mb-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">이미지 순서 조정</h3>
+                      <DragDropContext onDragEnd={handleDragEnd}>
+                        <Droppable droppableId="previewImages" direction="horizontal">
+                          {(provided) => (
+                            <div
+                              {...provided.droppableProps}
+                              ref={provided.innerRef}
+                              className="flex flex-wrap gap-4 mb-4"
+                            >
+                              {previewImages.map((image, index) => (
+                                <Draggable key={image.id} draggableId={image.id} index={index}>
+                                  {(provided) => (
+                                    <div
+                                      ref={provided.innerRef}
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      className="relative w-24 h-24"
+                                    >
+                                      <img
+                                        src={image.url}
+                                        alt={`이미지 ${image.sequence}`}
+                                        className="w-full h-full object-contain rounded-md shadow-sm"
+                                      />
+                                      <span className="absolute top-1 left-1 bg-gray-800 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                                        {image.sequence}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRemoveImage(image.id)}
+                                        className="absolute top-1 right-1 bg-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center hover:bg-red-700 transition duration-150 ease-in-out"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  )}
+                                </Draggable>
+                              ))}
+                              {provided.placeholder}
+                            </div>
+                          )}
+                        </Droppable>
+                      </DragDropContext>
+                    </div>
+                  )}
+
+                  <ProductImageUploader onImagesChange={handleImagesChange} />
+
+                  <h3 className="text-lg font-semibold text-gray-900 mt-6 mb-4">전체 이미지 미리보기</h3>
+                  {previewImages.length > 0 ? (
+                    <div className="space-y-4 mb-6">
+                      {previewImages.map((image) => (
+                        <div key={image.id} className="relative">
+                          <img
+                            src={image.url}
+                            alt={`이미지 ${image.sequence}`}
+                            className="w-full h-auto object-contain rounded-md shadow-sm"
+                          />
+                          <span className="absolute top-2 left-2 bg-gray-800 text-white text-sm font-bold rounded-full h-8 w-8 flex items-center justify-center">
+                            {image.sequence}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm mb-6">이미지가 없습니다.</p>
+                  )}
+
+                  {errors.images && (
+                    <p className="mt-2 text-sm text-red-600">{errors.images}</p>
+                  )}
+                  <div className="flex justify-end gap-4 mt-6">
+                    <Link
+                      to="/seller/products"
+                      className="inline-flex items-center px-6 py-3 border border-gray-200 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 shadow-sm transition duration-150 ease-in-out"
+                    >
+                      취소
+                    </Link>
+                    <button
+                      type="submit"
+                      className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition duration-150 ease-in-out"
+                    >
+                      이미지 수정
+                    </button>
                   </div>
-                ) : (
-                  <p className="text-gray-500 text-sm mb-6">기존 이미지가 없습니다.</p>
-                )}
-                <ProductImageUploader onImagesChange={handleImagesChange} />
-                {errors.images && (
-                  <p className="mt-2 text-sm text-red-600">{errors.images}</p>
-                )}
+                </form>
               </div>
             </div>
           </div>
