@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const LeaveAccount = () => {
   const navigate = useNavigate();
   const { isLoggedIn, logout } = useAuth();
@@ -26,7 +27,7 @@ const LeaveAccount = () => {
 
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:8080/api/v1/users/leave', {
+      const response = await fetch(`${VITE_API_BASE_URL}/api/v1/users/leave`, {
         method: 'DELETE',
         credentials: 'include',
         headers: {
