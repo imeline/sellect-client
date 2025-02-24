@@ -120,7 +120,7 @@ function OrderForm() {
             <div className="border-b border-gray-200 mt-0 mb-4"></div>
             <div className="flex flex-col gap-4">
               {orderData.order_items.map((item) => (
-                <CartOrderItem key={item.product_id} item={item} />
+                <OrderItem key={item.product_id} item={item} />
               ))}
             </div>
 
