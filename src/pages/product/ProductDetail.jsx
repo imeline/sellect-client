@@ -90,7 +90,7 @@ export default function ProductDetail() {
   const detailImages =
     product.images && product.images.length > 0
       ? product.images
-        .filter((img) => !img.representative && img.image_url.includes("SL"))
+        .filter((img) => !img.representative && img.image_url.includes("SL")) // TODO: 리사이징된 이미지 중 선택적으로 표시
         .map((img) => img.image_url)
       : [];
 

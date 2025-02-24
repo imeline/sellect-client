@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import CartItem from "../components/CartItem.jsx";
+import {useAuth} from "../context/AuthContext.jsx";
 
 function CartPage() {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { updateCartCount } = useAuth();
 
   // ✅ 장바구니 데이터 불러오기
   useEffect(() => {
@@ -88,6 +90,10 @@ function CartPage() {
 
       if (response.data.is_success) {
         setCartItems((prevItems) => prevItems.filter((item) => item.cart_item_id !== cartItemId));
+        const response = await axios.get(`${baseApiUrl}/api/v1/carts/count`, {
+          withCredentials: true,
+        });
+        updateCartCount(response.data.result);
       } else {
         console.error("❌ 삭제 실패:", response.data.message);
         alert("장바구니 삭제에 실패했습니다.");

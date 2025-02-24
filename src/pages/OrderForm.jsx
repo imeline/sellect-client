@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import OrderHeader from "../components/order/OrderHeader";
-import CartOrderItem from "../../components/CartOrderItem";
+import OrderItem from "../components/order/OrderItem";
 import {
   fetchOrderDetail,
   getAvailableCoupons,

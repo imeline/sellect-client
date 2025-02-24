@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ProductImageUploader from "../../components/product/ProductImageUploader.jsx";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-function ProductRegister() {
+function ProductEdit() {
   const navigate = useNavigate();
+  const { productId } = useParams(); // URL에서 productId 가져오기
 
-  // 카테고리 및 브랜드 데이터를 저장할 상태
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [formData, setFormData] = useState({
@@ -21,31 +21,57 @@ function ProductRegister() {
     name: "",
     description: "",
     stock: "",
-    images: [],
+    images: [], // 새로 추가할 이미지
+    existingImages: [], // 기존 이미지 (서버에서 가져옴)
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(true);
 
+  // 초기 데이터 로드
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchData = async () => {
       try {
-        let response = await axios.get(`${VITE_API_BASE_URL}/api/v1/categories`);
-        setCategories(response.data.result);
+        // 카테고리 가져오기
+        const categoryResponse = await axios.get(`${VITE_API_BASE_URL}/api/v1/categories`);
+        setCategories(categoryResponse.data.result);
 
-        response = await axios.get(`${VITE_API_BASE_URL}/api/v1/brands`);
-        setBrands(response.data.result);
+        // 브랜드 가져오기
+        const brandResponse = await axios.get(`${VITE_API_BASE_URL}/api/v1/brands`);
+        setBrands(brandResponse.data.result);
+
+        // 기존 상품 데이터 가져오기
+        const productResponse = await axios.get(`${VITE_API_BASE_URL}/api/v1/seller/products/${productId}`, {
+          withCredentials: true,
+        });
+        const product = productResponse.data.result;
+
+        setFormData({
+          largeCategoryId: product.category_large_id || "", // 대분류 ID (가정)
+          mediumCategoryId: product.category_medium_id || "", // 중분류 ID (가정)
+          categoryId: product.category_id || "",
+          brandId: product.brand_id || "",
+          price: product.price || "",
+          name: product.name || "",
+          description: product.description || "",
+          stock: product.stock || "",
+          images: [], // 새 이미지 업로드용 초기화
+          existingImages: product.images || [], // 기존 이미지 유지
+        });
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error("Error fetching data:", error);
+        setErrors({ fetch: "데이터를 불러오는데 실패했습니다." });
+      } finally {
+        setLoading(false);
       }
     };
-    fetchCategories();
-  }, []);
+    fetchData();
+  }, [productId]);
 
   // 입력값 변경 핸들러
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // 재고 필드에 음수 값 방지
     if (name === "stock") {
       const parsedValue = parseInt(value, 10);
       if (value === "" || (parsedValue >= 0 && !isNaN(parsedValue))) {
@@ -60,16 +86,24 @@ function ProductRegister() {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === "largeCategoryId" && { mediumCategoryId: "", categoryId: "" }), // 대분류 변경 시 중/소분류 초기화
-      ...(name === "mediumCategoryId" && { categoryId: "" }), // 중분류 변경 시 소분류 초기화
+      ...(name === "largeCategoryId" && { mediumCategoryId: "", categoryId: "" }),
+      ...(name === "mediumCategoryId" && { categoryId: "" }),
     }));
   };
 
-  // 이미지 변경 핸들러
+  // 이미지 변경 핸들러 (새 이미지 추가)
   const handleImagesChange = (images) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       images: images,
+    }));
+  };
+
+  // 기존 이미지 삭제 핸들러
+  const handleRemoveExistingImage = (imageUrl) => {
+    setFormData((prev) => ({
+      ...prev,
+      existingImages: prev.existingImages.filter((img) => img.image_url !== imageUrl),
     }));
   };
 
@@ -85,9 +119,9 @@ function ProductRegister() {
     else if (parseInt(formData.price) <= 0) newErrors.price = "가격은 1원 이상이어야 합니다.";
     if (!formData.name) newErrors.name = "상품명은 필수 입력값입니다.";
     else if (formData.name.length < 10) newErrors.name = "상품명은 최소 10글자 이상이어야 합니다.";
-    if (!formData.stock) newErrors.stock = "재고(stock)는 필수 입력값입니다.";
-    else if (parseInt(formData.stock) < 1) newErrors.stock = "재고(stock)는 1 이상이어야 합니다.";
-    if (formData.images.length === 0)
+    if (!formData.stock) newErrors.stock = "재고는 필수 입력값입니다.";
+    else if (parseInt(formData.stock) < 1) newErrors.stock = "재고는 1 이상이어야 합니다.";
+    if (formData.images.length + formData.existingImages.length === 0)
       newErrors.images = "이미지를 최소 1개 이상 업로드해주세요.";
 
     if (Object.keys(newErrors).length > 0) {
@@ -98,48 +132,66 @@ function ProductRegister() {
     // FormData 객체 구성
     const formDataToSend = new FormData();
 
-    // ProductRegisterRequest 객체 구성
-    const registerRequest = {
+    // 이미지 컨텍스트 구성
+    const allImages = [
+      ...formData.existingImages.map((img) => ({ ...img, isExisting: true })),
+      ...formData.images.map((file) => ({ file, target: uuidv4(), isExisting: false })),
+    ];
+
+    const imageContexts = allImages.map((image, index) => ({
+      target: image.isExisting ? image.image_url : image.target,
+      prev: index === 0 ? null : (allImages[index - 1].isExisting ? allImages[index - 1].image_url : allImages[index - 1].target),
+      next: index === allImages.length - 1 ? null : (allImages[index + 1].isExisting ? allImages[index + 1].image_url : allImages[index + 1].target),
+      is_representative: index === 0,
+    }));
+
+    // ProductUpdateRequest 객체 구성
+    const updateRequest = {
+      productId: productId,
       category_id: formData.categoryId,
       brand_id: formData.brandId,
       price: formData.price,
       name: formData.name,
       description: formData.description,
       stock: formData.stock,
-      image_contexts: formData.images.map((image, index) => ({
-        sequence: index,
-        uuid: uuidv4(),
-        is_representative: index === 0, // 첫 번째 이미지를 대표 이미지로 설정
-      })),
+      image_contexts: imageContexts,
     };
 
-    formDataToSend.append("register_request",
-      new Blob([JSON.stringify(registerRequest)], { type: "application/json" }));
+    formDataToSend.append(
+      "update_request",
+      new Blob([JSON.stringify(updateRequest)], { type: "application/json" })
+    );
 
-    // 이미지 파일 추가
-    formData.images.forEach((file, index) => {
+    // 새 이미지 파일 추가
+    formData.images.forEach((file) => {
       const fileExtension = file.name.split(".").pop();
-      formDataToSend.append("images",
-        new File([file], registerRequest.image_contexts[index].uuid + "." + fileExtension, { type: file.type }));
+      formDataToSend.append("images", new File([file], `${uuidv4()}.${fileExtension}`, { type: file.type }));
     });
 
-    console.log("상품 등록 요청:", registerRequest);
+    console.log("상품 수정 요청:", updateRequest);
 
     try {
-      const response = await axios.post(`${VITE_API_BASE_URL}/api/v1/product`,
-        formDataToSend, {
+      const response = await axios.put(`${VITE_API_BASE_URL}/api/v1/seller/products/${productId}`, formDataToSend, {
         withCredentials: true,
       });
 
       if (response.status === 200) {
         navigate("/seller/dashboard");
       } else {
-        console.error("상품 등록 실패");
+        console.error("상품 수정 실패");
       }
     } catch (error) {
-      console.error("상품 등록 중 오류:", error);
+      console.error("상품 수정 중 오류:", error);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500 text-lg">데이터를 불러오는 중입니다...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -148,19 +200,19 @@ function ProductRegister() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl font-extrabold text-gray-900 sm:text-5xl md:text-6xl">
-              <span className="text-indigo-600">SELLECT Seller</span> 상품 등록
+              <span className="text-indigo-600">SELLECT Seller</span> 상품 수정
             </h1>
             <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl">
-              새로운 상품을 등록하여 판매를 시작하세요.
+              기존 상품 정보를 수정하세요.
             </p>
           </div>
 
-          {/* Main Content - Hero Section 아래 좌우 분할 */}
+          {/* Main Content */}
           <div className="flex mt-12">
-            {/* Left: 상품 정보 입력 (상대적 위치) */}
+            {/* Left: 상품 정보 입력 */}
             <div className="w-1/2 pr-6">
               <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100">
-                <h2 className="text-2xl font-bold text-gray-900 mb-8">상품 정보 입력</h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-8">상품 정보 수정</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* 카테고리 선택 */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -313,7 +365,7 @@ function ProductRegister() {
                       id="stock"
                       value={formData.stock}
                       onChange={handleChange}
-                      min="0" // 음수 입력 방지
+                      min="0"
                       className="mt-1 block w-full rounded-lg border border-gray-200 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
                     />
                     {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
@@ -331,16 +383,38 @@ function ProductRegister() {
                       type="submit"
                       className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition duration-150 ease-in-out"
                     >
-                      상품 등록
+                      상품 수정
                     </button>
                   </div>
                 </form>
               </div>
             </div>
 
-            {/* Right: 이미지 업로드 (스크롤 가능) */}
+            {/* Right: 이미지 업로드 및 기존 이미지 표시 */}
             <div className="w-1/2 pl-6">
               <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100 h-[calc(100vh-20rem)] overflow-y-auto">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">기존 이미지</h3>
+                {formData.existingImages.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    {formData.existingImages.map((image, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={image.image_url}
+                          alt={`기존 이미지 ${index + 1}`}
+                          className="w-full h-32 object-contain rounded-md shadow-sm"
+                        />
+                        <button
+                          onClick={() => handleRemoveExistingImage(image.image_url)}
+                          className="absolute top-1 right-1 bg-red-600 text-white rounded-full h-6 w-6 flex items-center justify-center hover:bg-red-700 transition duration-150 ease-in-out"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm mb-6">기존 이미지가 없습니다.</p>
+                )}
                 <ProductImageUploader onImagesChange={handleImagesChange} />
                 {errors.images && (
                   <p className="mt-2 text-sm text-red-600">{errors.images}</p>
@@ -354,4 +428,4 @@ function ProductRegister() {
   );
 }
 
-export default ProductRegister;
+export default ProductEdit;

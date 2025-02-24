@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import OrderHeader from "../../components/order/OrderHeader.jsx";
-import OrderItem from "../../components/order/OrderItem.jsx";
+import OrderHeader from "../components/order/OrderHeader.jsx";
+import OrderItem from "../components/order/OrderItem.jsx";
 
 function OrderList() {
   const [orders, setOrders] = useState([]);
