@@ -3,13 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import ProductImageUploader from "../../components/product/ProductImageUploader.jsx";
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function ProductRegister() {
   const navigate = useNavigate();
 
-  // 카테고리 및 브랜드 데이터를 저장할 상태
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [formData, setFormData] = useState({
@@ -23,7 +23,7 @@ function ProductRegister() {
     stock: "",
     images: [],
   });
-
+  const [previewImages, setPreviewImages] = useState([]);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
@@ -41,11 +41,9 @@ function ProductRegister() {
     fetchCategories();
   }, []);
 
-  // 입력값 변경 핸들러
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // 재고 필드에 음수 값 방지
     if (name === "stock") {
       const parsedValue = parseInt(value, 10);
       if (value === "" || (parsedValue >= 0 && !isNaN(parsedValue))) {
@@ -60,20 +58,45 @@ function ProductRegister() {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === "largeCategoryId" && { mediumCategoryId: "", categoryId: "" }), // 대분류 변경 시 중/소분류 초기화
-      ...(name === "mediumCategoryId" && { categoryId: "" }), // 중분류 변경 시 소분류 초기화
+      ...(name === "largeCategoryId" && { mediumCategoryId: "", categoryId: "" }),
+      ...(name === "mediumCategoryId" && { categoryId: "" }),
     }));
   };
 
-  // 이미지 변경 핸들러
-  const handleImagesChange = (images) => {
-    setFormData(prev => ({
+  const handleImagesChange = (newImages) => {
+    console.log("handleImagesChange: ", newImages);
+    setFormData((prev) => ({
       ...prev,
-      images: images,
+      images: newImages,
+    }));
+    const newPreviewImages = newImages.map((file, index) => ({
+      id: uuidv4(),
+      url: URL.createObjectURL(file),
+      file,
+      sequence: index + 1,
+    }));
+    setPreviewImages(newPreviewImages);
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const newPreviewImages = [...previewImages];
+    const [reorderedImage] = newPreviewImages.splice(result.source.index, 1);
+    newPreviewImages.splice(result.destination.index, 0, reorderedImage);
+
+    // sequence 재설정
+    newPreviewImages.forEach((img, index) => {
+      img.sequence = index + 1;
+    });
+
+    setPreviewImages(newPreviewImages);
+    setFormData((prev) => ({
+      ...prev,
+      images: newPreviewImages.map((img) => img.file),
     }));
   };
 
-  // 폼 제출 핸들러
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
@@ -85,20 +108,17 @@ function ProductRegister() {
     else if (parseInt(formData.price) <= 0) newErrors.price = "가격은 1원 이상이어야 합니다.";
     if (!formData.name) newErrors.name = "상품명은 필수 입력값입니다.";
     else if (formData.name.length < 10) newErrors.name = "상품명은 최소 10글자 이상이어야 합니다.";
-    if (!formData.stock) newErrors.stock = "재고(stock)는 필수 입력값입니다.";
-    else if (parseInt(formData.stock) < 1) newErrors.stock = "재고(stock)는 1 이상이어야 합니다.";
-    if (formData.images.length === 0)
-      newErrors.images = "이미지를 최소 1개 이상 업로드해주세요.";
+    if (!formData.stock) newErrors.stock = "재고는 필수 입력값입니다.";
+    else if (parseInt(formData.stock) < 1) newErrors.stock = "재고는 1 이상이어야 합니다.";
+    if (formData.images.length === 0) newErrors.images = "이미지를 최소 1개 이상 업로드해주세요.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    // FormData 객체 구성
     const formDataToSend = new FormData();
 
-    // ProductRegisterRequest 객체 구성
     const registerRequest = {
       category_id: formData.categoryId,
       brand_id: formData.brandId,
@@ -106,28 +126,26 @@ function ProductRegister() {
       name: formData.name,
       description: formData.description,
       stock: formData.stock,
-      image_contexts: formData.images.map((image, index) => ({
-        sequence: index,
+      image_contexts: previewImages.map((image) => ({
+        sequence: image.sequence,
         uuid: uuidv4(),
-        is_representative: index === 0, // 첫 번째 이미지를 대표 이미지로 설정
+        is_representative: image.sequence === 1,
       })),
     };
 
-    formDataToSend.append("register_request",
-      new Blob([JSON.stringify(registerRequest)], { type: "application/json" }));
+    formDataToSend.append(
+      "register_request",
+      new Blob([JSON.stringify(registerRequest)], { type: "application/json" })
+    );
 
-    // 이미지 파일 추가
-    formData.images.forEach((file, index) => {
-      const fileExtension = file.name.split(".").pop();
-      formDataToSend.append("images",
-        new File([file], registerRequest.image_contexts[index].uuid + "." + fileExtension, { type: file.type }));
+    previewImages.forEach((image) => {
+      const fileExtension = image.file.name.split(".").pop();
+      const uuid = registerRequest.image_contexts.find((ctx) => ctx.sequence === image.sequence).uuid;
+      formDataToSend.append("images", new File([image.file], `${uuid}.${fileExtension}`, { type: image.file.type }));
     });
 
-    console.log("상품 등록 요청:", registerRequest);
-
     try {
-      const response = await axios.post(`${VITE_API_BASE_URL}/api/v1/product`,
-        formDataToSend, {
+      const response = await axios.post(`${VITE_API_BASE_URL}/api/v1/product`, formDataToSend, {
         withCredentials: true,
       });
 
@@ -143,7 +161,6 @@ function ProductRegister() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
       <div className="bg-indigo-50 py-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -155,14 +172,12 @@ function ProductRegister() {
             </p>
           </div>
 
-          {/* Main Content - Hero Section 아래 좌우 분할 */}
           <div className="flex mt-12">
-            {/* Left: 상품 정보 입력 (상대적 위치) */}
+            {/* Left: 상품 정보 입력 */}
             <div className="w-1/2 pr-6">
               <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100">
                 <h2 className="text-2xl font-bold text-gray-900 mb-8">상품 정보 입력</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* 카테고리 선택 */}
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                     <div>
                       <label htmlFor="largeCategoryId" className="block text-sm font-medium text-gray-700">
@@ -233,7 +248,6 @@ function ProductRegister() {
                     </div>
                   </div>
 
-                  {/* 브랜드 선택 */}
                   <div>
                     <label htmlFor="brandId" className="block text-sm font-medium text-gray-700">
                       브랜드
@@ -255,7 +269,6 @@ function ProductRegister() {
                     {errors.brandId && <p className="mt-1 text-sm text-red-600">{errors.brandId}</p>}
                   </div>
 
-                  {/* 가격 */}
                   <div>
                     <label htmlFor="price" className="block text-sm font-medium text-gray-700">
                       가격 (원)
@@ -271,7 +284,6 @@ function ProductRegister() {
                     {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
                   </div>
 
-                  {/* 상품명 */}
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                       상품명
@@ -287,7 +299,6 @@ function ProductRegister() {
                     {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
                   </div>
 
-                  {/* 설명 */}
                   <div>
                     <label htmlFor="description" className="block text-sm font-medium text-gray-700">
                       상품 설명
@@ -302,7 +313,6 @@ function ProductRegister() {
                     />
                   </div>
 
-                  {/* 재고 */}
                   <div>
                     <label htmlFor="stock" className="block text-sm font-medium text-gray-700">
                       재고
@@ -313,13 +323,12 @@ function ProductRegister() {
                       id="stock"
                       value={formData.stock}
                       onChange={handleChange}
-                      min="0" // 음수 입력 방지
+                      min="0"
                       className="mt-1 block w-full rounded-lg border border-gray-200 bg-white py-2 px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition duration-150 ease-in-out"
                     />
                     {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
                   </div>
 
-                  {/* 제출 버튼 */}
                   <div className="flex justify-end gap-4">
                     <Link
                       to="/seller/products"
@@ -338,13 +347,76 @@ function ProductRegister() {
               </div>
             </div>
 
-            {/* Right: 이미지 업로드 (스크롤 가능) */}
+            {/* Right: 이미지 업로드 및 순서 조정 */}
             <div className="w-1/2 pl-6">
-              <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100 h-[calc(100vh-20rem)] overflow-y-auto">
-                <ProductImageUploader onImagesChange={handleImagesChange} />
-                {errors.images && (
-                  <p className="mt-2 text-sm text-red-600">{errors.images}</p>
+              <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100 h-[calc(100vh-10rem)] overflow-y-auto">
+                <h2 className="text-2xl font-bold text-gray-900 mb-8">상품 이미지 등록</h2>
+
+                {/* 이미지 순서 조정 */}
+                {previewImages.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">이미지 순서 조정</h3>
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                      <Droppable droppableId="previewImages" direction="horizontal">
+                        {(provided) => (
+                          <div
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            className="flex flex-wrap gap-4 mb-4"
+                          >
+                            {previewImages.map((image, index) => (
+                              <Draggable key={image.id} draggableId={image.id} index={index}>
+                                {(provided) => (
+                                  <div
+                                    ref={provided.innerRef}
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    className="relative w-24 h-24"
+                                  >
+                                    <img
+                                      src={image.url}
+                                      alt={`이미지 ${image.sequence}`}
+                                      className="w-full h-full object-contain rounded-md shadow-sm"
+                                    />
+                                    <span className="absolute top-1 left-1 bg-gray-800 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center">
+                                      {image.sequence}
+                                    </span>
+                                  </div>
+                                )}
+                              </Draggable>
+                            ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </DragDropContext>
+                  </div>
                 )}
+
+                <ProductImageUploader onImagesChange={handleImagesChange} />
+
+                {/* 전체 이미지 미리보기 */}
+                {previewImages.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">전체 이미지 미리보기</h3>
+                    <div className="space-y-4">
+                      {previewImages.map((image) => (
+                        <div key={image.id} className="relative">
+                          <img
+                            src={image.url}
+                            alt={`이미지 ${image.sequence}`}
+                            className="w-full h-auto object-contain rounded-md shadow-sm"
+                          />
+                          <span className="absolute top-2 left-2 bg-gray-800 text-white text-sm font-bold rounded-full h-8 w-8 flex items-center justify-center">
+                            {image.sequence}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {errors.images && <p className="mt-2 text-sm text-red-600">{errors.images}</p>}
               </div>
             </div>
           </div>
