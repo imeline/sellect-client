@@ -131,7 +131,7 @@ function CartPage() {
       );
 
       if (response.data.is_success) {
-        const orderId = response.data.result;
+        const orderId = response.data.result.order_id;
         navigate("/order/form", { state: { orderId } });
       } else {
         console.error("❌ 주문 생성 실패:", response.data.message);
