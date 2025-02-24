@@ -56,7 +56,7 @@ const PaymentHistory = () => {
     setLoading(true);
     try {
       const response = await fetch(
-          `http://localhost:8080/api/v1/payment/history?page=${page}&size=${size}`,
+          `${VITE_API_BASE_URL}/api/v1/payment/history?page=${page}&size=${size}`,
           {
             credentials: 'include',
             headers: {
