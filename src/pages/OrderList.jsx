@@ -3,10 +3,10 @@ import OrderHeader from "../components/order/OrderHeader.jsx";
 import OrderItem from "../components/order/OrderItem.jsx";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 function OrderList() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -25,12 +25,11 @@ function OrderList() {
         if (data.is_success && Array.isArray(data.result)) {
           setOrders(data.result);
         } else {
-          throw new Error(
-            data.message || "주문 리스트 데이터를 불러오는 데 실패했습니다."
-          );
+          setOrders([]);
         }
       } catch (err) {
-        setError(err.message);
+        console.error("주문 리스트 가져오기 실패:", err);
+        setOrders([]);
       } finally {
         setLoading(false);
       }
@@ -39,33 +38,81 @@ function OrderList() {
     fetchOrders();
   }, []);
 
-  if (loading) return <div>로딩 중...</div>;
-  if (error) return <div>오류 발생: {error}</div>;
-
   return (
-    <div className="pt-12 bg-gray-50 min-h-screen">
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">주문 내역</h2>
-        <div className="space-y-6">
-          {orders.map((order) => (
-            <div
-              key={order.order_id}
-              className="bg-white rounded-lg shadow-md border border-gray-200 p-6"
-            >
-              <div className="pb-0">
-                <OrderHeader order={order} showDetailLink={true} />
+      <div className="pt-12 bg-gray-100 min-h-screen">
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-6 tracking-tight">
+            주문 내역
+          </h2>
+
+          {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-indigo-600"></div>
+                <span className="ml-4 text-lg text-gray-600">로딩 중...</span>
               </div>
-              <div className="border-b border-gray-200 mt-0 mb-4"></div>
-              <div className="flex flex-col gap-4">
-                {order.order_items.map((item) => (
-                  <OrderItem key={item.product_id} item={item} />
-                ))}
+          ) : (
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead className="bg-indigo-50">
+                    <tr>
+                      <th className="py-4 px-6 text-left text-sm font-semibold text-indigo-700 uppercase tracking-wider">
+                        주문 정보
+                      </th>
+                    </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                    {orders.length > 0 ? (
+                        orders.map((order) => (
+                            <tr
+                                key={order.order_id}
+                                className="hover:bg-gray-50 transition-colors duration-200"
+                            >
+                              <td className="p-6">
+                                <OrderHeader order={order} showDetailLink={true} />
+                                <div className="flex flex-col gap-4 mt-4">
+                                  {order.order_items.map((item) => (
+                                      <OrderItem key={item.product_id} item={item} />
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                          <td className="py-12 px-6 text-center text-gray-500">
+                            <div className="flex flex-col items-center gap-4">
+                              <svg
+                                  className="w-16 h-16 text-gray-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                  xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M3 3h18v18H3V3zm4 4h10v10H7V7z"
+                                ></path>
+                              </svg>
+                              <p className="text-lg font-medium">
+                                아직 주문 내역이 없습니다.
+                              </p>
+                              <p className="text-sm text-gray-400">
+                                주문을 시작해보세요!
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                    )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          ))}
+          )}
         </div>
       </div>
-    </div>
   );
 }
 
