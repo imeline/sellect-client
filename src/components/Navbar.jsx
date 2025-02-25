@@ -40,11 +40,6 @@ export default function Navbar() {
               </Link>
             )}
             {(role === "GUEST" || role === "USER") && (
-              <Link to="/favorites" className="hover:text-indigo-600 transition-colors">
-                <HeartIcon className="h-6 w-6" />
-              </Link>
-            )}
-            {(role === "GUEST" || role === "USER") && (
               <Link to="/coupon" className="flex items-center space-x-1 hover:text-indigo-600 transition-colors">
                 <TicketIcon className="h-6 w-6" />
                 <span className="hidden md:inline">쿠폰 발급하기</span>

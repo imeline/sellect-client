@@ -9,7 +9,7 @@ function CouponUploader() {
   const [formData, setFormData] = useState({
     quantity: '',
     discount: '',
-    expirationDate: '',
+    expiration_date: '',
   });
 
   const [errors, setErrors] = useState({});
