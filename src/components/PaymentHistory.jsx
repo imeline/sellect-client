@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const PaymentHistory = () => {
   // 더미 데이터 (PaymentStatus에 맞게 수정)
-
-  const [payments, setPayments] = useState();
+  console.log('VITE_API_BASE_URL:', VITE_API_BASE_URL);
+  const [payments, setPayments] = useState([]);
   const [page] = useState(0);
   const [size] = useState(5);
   const [loading, setLoading] = useState(false);
