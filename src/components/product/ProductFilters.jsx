@@ -4,12 +4,12 @@ import axios from "axios";
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const priceRanges = [
-  { label: "전체", min: 0, max: 500000 },
-  { label: "$50 이하", min: 0, max: 50 },
-  { label: "$50 ~ $100", min: 50, max: 100 },
-  { label: "$100 ~ $200", min: 100, max: 200 },
-  { label: "$200 ~ $300", min: 200, max: 300 },
-  { label: "$300 이상", min: 300, max: 500000 }
+  { label: "전체", min: 0, max: 500000000 },
+  { label: "50,000원 이하", min: 0, max: 50000 },
+  { label: "50,000원 ~ 100,000원", min: 50000, max: 100000 },
+  { label: "100,000원 ~ 200,000원", min: 100000, max: 200000 },
+  { label: "200,000원 ~ 300,000원", min: 200000, max: 300000 },
+  { label: "300,000원 이상", min: 300000, max: 500000 }
 ];
 
 export default function ProductFilters({
