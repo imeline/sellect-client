@@ -22,6 +22,11 @@ function OrderForm() {
   const navigate = useNavigate();
   const orderId = location.state?.orderId;
 
+  // TODO: 결제 성곰 메시지 리스너 완성되면 삭제
+  useEffect(() => {
+    updateCartCount();
+  }, []);
+
   // 결제 성공 메시지 리스너
   useEffect(() => {
     const handlePaymentMessage = (event) => {
@@ -32,7 +37,6 @@ function OrderForm() {
             totalAmount: finalPrice,
           },
         });
-        updateCartCount();
       }
     };
 
