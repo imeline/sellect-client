@@ -9,6 +9,18 @@ const PaymentHistory = () => {
   const [size] = useState(5);
   const [loading, setLoading] = useState(false);
 
+  // 날짜 포맷팅 함수
+  const formatDate = (isoString) => {
+    if (!isoString) return '-';
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 0부터 시작하므로 +1
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  };
+
   // API 호출 함수
   const fetchPaymentHistory = async () => {
     setLoading(true);
@@ -68,7 +80,7 @@ const PaymentHistory = () => {
                     >
                       <td className="py-3 px-4 text-gray-700">{payment?.id || '-'}</td>
                       <td className="py-3 px-4 text-gray-700">{payment?.price ? `${payment.price} 원` : '-'}</td>
-                      <td className="py-3 px-4 text-gray-700">{payment?.orderId || '-'}</td>
+                      <td className="py-3 px-4 text-gray-700">{payment?.order_id || '-'}</td>
                       <td className="py-3 px-4 text-gray-700">{payment?.pid || '-'}</td>
                       <td className="py-3 px-4">
                     <span
@@ -87,7 +99,7 @@ const PaymentHistory = () => {
                       {payment?.status || '알 수 없음'}
                     </span>
                       </td>
-                      <td className="py-3 px-4 text-gray-700">{payment?.createdAt || '-'}</td>
+                      <td className="py-3 px-4 text-gray-700">{formatDate(payment?.created_at)}</td>
                     </tr>
                 ))}
                 </tbody>
