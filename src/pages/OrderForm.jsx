@@ -16,7 +16,7 @@ function OrderForm() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [error, setError] = useState(null);
   const [couponError, setCouponError] = useState(null);
-  const [ updateCartCount ] = useAuth();
+  const { updateCartCount } = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
