@@ -151,7 +151,7 @@ export default function ProductDetail() {
 
               <div className="flex items-center justify-between mb-4">
                 <p className="text-gray-500 text-xl">
-                  ${product.price ? product.price.toLocaleString() : "0"}
+                  {product.price ? product.price.toLocaleString() : "0"}원
                 </p>
                 <div className="flex items-center gap-2 relative">
                   <button

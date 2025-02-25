@@ -66,12 +66,8 @@ export default function ProductItem({ product }) {
       <h2 className="mt-2 text-lg font-semibold text-gray-900 truncate">
         {truncateProductName(product.name, 20)}
       </h2>
-      <p className="text-gray-500">${product.price.toLocaleString()}</p>
+      <p className="text-gray-500">{product.price.toLocaleString()}원</p>
       <div className="mt-2 flex items-center justify-between">
-        <div className="text-yellow-500">
-          {"★".repeat(Math.floor(product.rating || 0))}
-          {"☆".repeat(5 - Math.floor(product.rating || 0))}
-        </div>
         <div className="relative">
           <button
             onClick={(e) => {
