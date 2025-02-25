@@ -7,7 +7,7 @@ const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 function SellerHome() {
   const [sellerStats, setSellerStats] = useState({
     totalProductsCount: 0,
-    totalSales: "$0.00",
+    totalSales: "0원",
     pendingOrders: 0,
   });
   const [recentProducts, setRecentProducts] = useState([]);
@@ -20,10 +20,7 @@ function SellerHome() {
         });
         setSellerStats((prev) => ({
           ...prev,
-          totalSales: new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-          }).format(response.data.result.total_sales) || "$0.00",
+          totalSales: response.data.result.total_sales.toLocaleString() + "원",
           totalProductsCount: response.data.result.total_products_count || 0,
         }));
 

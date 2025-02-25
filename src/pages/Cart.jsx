@@ -90,10 +90,7 @@ function CartPage() {
 
       if (response.data.is_success) {
         setCartItems((prevItems) => prevItems.filter((item) => item.cart_item_id !== cartItemId));
-        const response = await axios.get(`${baseApiUrl}/api/v1/carts/count`, {
-          withCredentials: true,
-        });
-        updateCartCount(response.data.result);
+        updateCartCount();
       } else {
         console.error("❌ 삭제 실패:", response.data.message);
         alert("장바구니 삭제에 실패했습니다.");
