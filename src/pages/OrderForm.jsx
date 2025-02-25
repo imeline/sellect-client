@@ -3,6 +3,7 @@ import {useLocation, useNavigate} from "react-router-dom";
 import CartOrderItem from "../components/order/OrderItem.jsx";
 import CouponItem from "../components/CouponItem";
 import PaymentSummary from "../components/order/PaymentSummary";
+import {useAuth} from "../context/AuthContext.jsx";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -15,6 +16,7 @@ function OrderForm() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [error, setError] = useState(null);
   const [couponError, setCouponError] = useState(null);
+  const [ updateCartCount ] = useAuth();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -30,6 +32,7 @@ function OrderForm() {
             totalAmount: finalPrice,
           },
         });
+        updateCartCount();
       }
     };
 

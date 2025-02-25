@@ -72,8 +72,12 @@ export function AuthProvider({ children }) {
   };
 
   // 장바구니 개수 업데이트 함수
-  const updateCartCount = (count) => {
-    dispatch({ type: 'UPDATE_CART_COUNT', payload: count });
+  const updateCartCount = async () => {
+    const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/carts/count`, {
+      withCredentials: true,
+    });
+    const cartItemCount = response.data.result || 0;
+    dispatch({ type: 'UPDATE_CART_COUNT', payload: cartItemCount });
   };
 
   return (

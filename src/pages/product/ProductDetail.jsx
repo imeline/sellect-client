@@ -49,10 +49,7 @@ export default function ProductDetail() {
       setTimeout(() => {
         setShowCartMessage(false);
       }, 2000);
-      const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/carts/count`, {
-        withCredentials: true,
-      });
-      updateCartCount(response.data.result);
+      updateCartCount();
     } catch (error) {
       console.error("Error adding to cart:", error);
       alert("장바구니 추가에 실패했습니다.");

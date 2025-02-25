@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -20,13 +20,11 @@ export default function ProductFilters({
                                          onPriceFilter,
                                          onCustomPriceApply,
                                        }) {
-  // 카테고리 데이터를 저장할 상태
   const [categories, setCategories] = useState([]);
   const [largeCategory, setLargeCategory] = useState(filters.largeCategory || "");
   const [mediumCategory, setMediumCategory] = useState(filters.mediumCategory || "");
   const [smallCategory, setSmallCategory] = useState(filters.smallCategory || "");
 
-  // API 데이터 가져오기
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -40,21 +38,37 @@ export default function ProductFilters({
   }, []);
 
   const handleFilterChange = (e) => {
-    const {name, value} = e.target;
+    const { name, value } = e.target;
 
-    // 카테고리 변경 시 상태 업데이트 및 상위 컴포넌트로 전달
     if (name === "largeCategory") {
       setLargeCategory(value);
-      setMediumCategory(""); // 대분류 변경 시 중분류 초기화
-      setSmallCategory(""); // 소분류 초기화
-    } else if (name === "mediumCategory") {
-      setMediumCategory(value);
-      setSmallCategory(""); // 중분류 변경 시 소분류 초기화
-    } else if (name === "smallCategory") {
-      setSmallCategory(value);
+      setMediumCategory("");
+      setSmallCategory("");
+      // 대분류만 선택된 경우, 대분류 ID로 필터 업데이트
       onFilterChange({
         ...filters,
-        categoryId: value,
+        categoryId: value || undefined, // "전체" 선택 시 undefined로 설정
+        largeCategory: value,
+        mediumCategory: "",
+        smallCategory: "",
+      });
+    } else if (name === "mediumCategory") {
+      setMediumCategory(value);
+      setSmallCategory("");
+      // 중분류까지 선택된 경우, 중분류 ID로 필터 업데이트
+      onFilterChange({
+        ...filters,
+        categoryId: value || largeCategory || undefined, // "전체" 선택 시 대분류로 fallback
+        mediumCategory: value,
+        smallCategory: "",
+      });
+    } else if (name === "smallCategory") {
+      setSmallCategory(value);
+      // 소분류 선택 시, 소분류 ID로 필터 업데이트
+      onFilterChange({
+        ...filters,
+        categoryId: value || mediumCategory || largeCategory || undefined,
+        smallCategory: value,
       });
     }
   };
@@ -63,7 +77,6 @@ export default function ProductFilters({
     <aside className="w-1/4 p-4 bg-white shadow-lg rounded-lg sticky top-24 self-start">
       <h2 className="text-xl font-bold mb-4">필터</h2>
 
-      {/* 대분류 선택 */}
       <div className="mb-4">
         <label className="block text-gray-700">대분류</label>
         <select
@@ -81,7 +94,6 @@ export default function ProductFilters({
         </select>
       </div>
 
-      {/* 중분류 선택 */}
       <div className="mb-4">
         <label className="block text-gray-700">중분류</label>
         <select
@@ -103,7 +115,6 @@ export default function ProductFilters({
         </select>
       </div>
 
-      {/* 소분류 선택 */}
       <div className="mb-4">
         <label className="block text-gray-700">소분류</label>
         <select
@@ -126,13 +137,12 @@ export default function ProductFilters({
         </select>
       </div>
 
-      {/* 브랜드 선택 */}
       <div className="mb-4">
         <label className="block text-gray-700">브랜드</label>
         <select
           name="brand"
           value={filters.brand}
-          onChange={handleFilterChange}
+          onChange={(e) => onFilterChange({ ...filters, brand: e.target.value })}
           className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
         >
           <option value="">전체</option>
@@ -141,7 +151,6 @@ export default function ProductFilters({
         </select>
       </div>
 
-      {/* 가격 범위 */}
       <div className="mb-4">
         <label className="block text-gray-700">가격 범위</label>
         <div className="flex flex-col gap-2">
@@ -169,13 +178,13 @@ export default function ProductFilters({
               type="number"
               placeholder="최소 가격"
               className="w-1/2 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              onChange={(e) => onFilterChange({...filters, minPrice: Number(e.target.value)})}
+              onChange={(e) => onFilterChange({ ...filters, minPrice: Number(e.target.value) })}
             />
             <input
               type="number"
               placeholder="최대 가격"
               className="w-1/2 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              onChange={(e) => onFilterChange({...filters, maxPrice: Number(e.target.value)})}
+              onChange={(e) => onFilterChange({ ...filters, maxPrice: Number(e.target.value) })}
             />
           </div>
         )}
