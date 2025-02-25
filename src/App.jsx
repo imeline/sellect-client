@@ -50,12 +50,12 @@ function App() {
 
             {/* USER 전용 */}
             <Route path="/cart" element={<RouteGuard component={Cart} allowedRoles={['USER']} />} />
-            <Route path="/user/orders" element={<RouteGuard component={OrderList} allowedRoles={['USER']} />} />
+
             <Route path="/coupon" element={<RouteGuard component={CouponDownload} allowedRoles={['USER']} />} />
             <Route path="/order/form" element={<RouteGuard component={OrderForm} allowedRoles={['USER']} />} />
             <Route path="/order/:orderId" element={<RouteGuard component={OrderDetail} allowedRoles={['USER']} />} />
             <Route path="/user/profile" element={<RouteGuard component={Profile} allowedRoles={['USER']} />}>
-              <Route path="orders" element={<RouteGuard component={Orders} allowedRoles={['USER']} />} />
+              <Route path="orders" element={<RouteGuard component={OrderList} allowedRoles={['USER']} />} />
               <Route path="payment-history" element={<RouteGuard component={PaymentHistory} allowedRoles={['USER']} />} />
               <Route path="coupons" element={<RouteGuard component={Coupons} allowedRoles={['USER']} />} />
               <Route path="leave" element={<RouteGuard component={LeaveAccount} allowedRoles={['USER']} />} />
