@@ -1,6 +1,6 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import {Link, useNavigate, useParams} from "react-router-dom";
+import {useEffect, useState} from "react";
+import useApiService from "../../services/ApiService.js";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -10,11 +10,12 @@ export default function SellerProductDetail() {
   const [productDetail, setProductDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { get, del } = useApiService();
 
   useEffect(() => {
     const fetchProductDetail = async () => {
       try {
-        const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/seller/products/${productId}`, {
+        const response = await get(`${VITE_API_BASE_URL}/api/v1/seller/products/${productId}`, {
           withCredentials: true,
         });
         const fetchedProduct = response.data.result || null;
@@ -42,7 +43,7 @@ export default function SellerProductDetail() {
   const handleDelete = async () => {
     if (window.confirm("정말로 이 상품을 삭제하시겠습니까?")) {
       try {
-        await axios.delete(`${VITE_API_BASE_URL}/api/v1/seller/products/${productId}`, {
+        await del(`${VITE_API_BASE_URL}/api/v1/seller/products/${productId}`, {
           withCredentials: true,
         });
         alert("상품이 삭제되었습니다.");
