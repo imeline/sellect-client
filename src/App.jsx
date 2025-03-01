@@ -10,7 +10,6 @@ import OrderDetail from "./pages/OrderDetail.jsx";
 import CouponDownload from "./pages/CouponDownload.jsx";
 import Profile from "./pages/Profile.jsx";
 import Coupons from "./components/Coupons.jsx";
-import Orders from "./components/order/Orders.jsx";
 import ProductRegister from './pages/seller/ProductRegister.jsx';
 import SellerHome from './pages/seller/SellerHome.jsx';
 import Login from './pages/Login.jsx';
@@ -34,6 +33,7 @@ function App() {
         <div className="min-h-screen bg-gray-50">
           <Navbar />
           <Routes>
+
             {/* GUEST, USER 전용 */}
             <Route path="/" element={<RouteGuard component={Home} allowedRoles={['GUEST', 'USER']} defaultRedirect="/home" />} />
             <Route path="/home" element={<RouteGuard component={Home} allowedRoles={['GUEST', 'USER']} />} />

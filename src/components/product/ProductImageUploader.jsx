@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 
-function ProductImageUploader({ onImagesChange }) {
+const ProductImageUploader = ({ onImagesChange }) => {
   const [images, setImages] = useState([]);
   const [dragOver, setDragOver] = useState(false);
 
@@ -60,12 +60,11 @@ function ProductImageUploader({ onImagesChange }) {
           dragOver ? "border-indigo-500 bg-indigo-50" : "border-gray-300 bg-white"
         }`}
       >
-        <p className="text-gray-500 mb-4">
-          이미지를 여기로 드래그하거나 아래 버튼을 클릭하세요.
-        </p>
+        <p className="text-gray-500 mb-4">이미지를 여기로 드래그하거나 아래 버튼을 클릭하세요.</p>
         <input
           type="file"
           multiple
+          accept="image/*"
           onChange={handleFileChange}
           className="hidden"
           id="image-upload"
@@ -76,7 +75,6 @@ function ProductImageUploader({ onImagesChange }) {
         >
           파일 선택
         </label>
-        {/* 업로드된 파일 이름 표시 */}
         {images.length > 0 && (
           <ul className="mt-4 text-sm text-gray-700 space-y-2">
             {images.map((image, index) => (
@@ -95,6 +93,6 @@ function ProductImageUploader({ onImagesChange }) {
       </div>
     </div>
   );
-}
+};
 
 export default ProductImageUploader;

@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ProductImageUploader from "../../components/product/ProductImageUploader.jsx";
-import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import useApiService from "../../services/ApiService";
+import { useAuth } from "../../context/AuthContext";
+import * as tus from "tus-js-client";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function ProductRegister() {
   const navigate = useNavigate();
+  const { get, post } = useApiService();
+  const { accessToken } = useAuth();
 
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
@@ -25,20 +29,21 @@ function ProductRegister() {
   });
   const [previewImages, setPreviewImages] = useState([]);
   const [errors, setErrors] = useState({});
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchCategoriesAndBrands = async () => {
       try {
-        let response = await axios.get(`${VITE_API_BASE_URL}/api/v1/categories`);
+        let response = await get("/api/v1/categories");
         setCategories(response.data.result);
 
-        response = await axios.get(`${VITE_API_BASE_URL}/api/v1/brands`);
+        response = await get("/api/v1/brands");
         setBrands(response.data.result);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
     };
-    fetchCategories();
+    fetchCategoriesAndBrands();
   }, []);
 
   const handleChange = (e) => {
@@ -64,7 +69,7 @@ function ProductRegister() {
   };
 
   const handleImagesChange = (newImages) => {
-    console.log("handleImagesChange: ", newImages);
+    console.log("handleImagesChange:", newImages);
     setFormData((prev) => ({
       ...prev,
       images: newImages,
@@ -85,7 +90,6 @@ function ProductRegister() {
     const [reorderedImage] = newPreviewImages.splice(result.source.index, 1);
     newPreviewImages.splice(result.destination.index, 0, reorderedImage);
 
-    // sequence 재설정
     newPreviewImages.forEach((img, index) => {
       img.sequence = index + 1;
     });
@@ -117,45 +121,81 @@ function ProductRegister() {
       return;
     }
 
-    const formDataToSend = new FormData();
+    setUploading(true);
 
-    const registerRequest = {
-      category_id: formData.categoryId,
-      brand_id: formData.brandId,
-      price: formData.price,
-      name: formData.name,
-      description: formData.description,
-      stock: formData.stock,
-      image_contexts: previewImages.map((image) => ({
-        sequence: image.sequence,
-        uuid: uuidv4(),
-        is_representative: image.sequence === 1,
-      })),
-    };
+    // 1. 이미지 파일 이름 수정 및 업로드 준비
+    const uploadPromises = previewImages.map((image) => {
+      return new Promise((resolve, reject) => {
+        const fileExtension = image.file.name.split(".").pop();
+        const uuid = uuidv4();
+        const newFileName = `${uuid}.${fileExtension}`;
 
-    formDataToSend.append(
-      "register_request",
-      new Blob([JSON.stringify(registerRequest)], { type: "application/json" })
-    );
+        // 새로운 File 객체 생성 (파일 이름 변경)
+        const renamedFile = new File([image.file], newFileName, { type: image.file.type });
 
-    previewImages.forEach((image) => {
-      const fileExtension = image.file.name.split(".").pop();
-      const uuid = registerRequest.image_contexts.find((ctx) => ctx.sequence === image.sequence).uuid;
-      formDataToSend.append("images", new File([image.file], `${uuid}.${fileExtension}`, { type: image.file.type }));
+        const upload = new tus.Upload(renamedFile, {
+          endpoint: `${VITE_API_BASE_URL}/api/v1/images/upload`,
+          chunkSize: 5 * 1024 * 1024,
+          retryDelays: [0, 1000, 3000, 5000],
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          metadata: {
+            filename: newFileName, // 서버에 전달할 파일 이름
+            filetype: image.file.type,
+          },
+          onSuccess: () => {
+            resolve({ ...image, uploadUrl: upload.url, file: renamedFile, uuid });
+          },
+          onError: (error) => {
+            reject(error);
+          },
+          onProgress: (bytesUploaded, bytesTotal) => {
+            const percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(2);
+            console.log(`${newFileName}: ${percentage}%`);
+          },
+        });
+
+        upload.start();
+      });
     });
 
     try {
-      const response = await axios.post(`${VITE_API_BASE_URL}/api/v1/product`, formDataToSend, {
-        withCredentials: true,
-      });
+      const uploadedImages = await Promise.all(uploadPromises);
 
-      if (response.status === 200) {
+      // 2. 상품 등록 요청 준비
+      const formDataToSend = new FormData();
+
+      const registerRequest = {
+        category_id: formData.categoryId,
+        brand_id: formData.brandId,
+        price: formData.price,
+        name: formData.name,
+        description: formData.description,
+        stock: formData.stock,
+        image_contexts: uploadedImages.map((image) => ({
+          sequence: image.sequence,
+          is_representative: image.sequence === 1,
+          filename: image.file.name
+        })),
+      };
+
+      formDataToSend.append(
+        "register_request",
+        new Blob([JSON.stringify(registerRequest)], { type: "application/json" })
+      );
+
+      // 3. 상품 등록 요청 전송
+      const response = await post("/api/v1/product", formDataToSend);
+      if (response.data.is_success) {
         navigate("/seller/dashboard");
       } else {
         console.error("상품 등록 실패");
       }
     } catch (error) {
       console.error("상품 등록 중 오류:", error);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -173,7 +213,6 @@ function ProductRegister() {
           </div>
 
           <div className="flex mt-12">
-            {/* Left: 상품 정보 입력 */}
             <div className="w-1/2 pr-6">
               <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100">
                 <h2 className="text-2xl font-bold text-gray-900 mb-8">상품 정보 입력</h2>
@@ -192,9 +231,7 @@ function ProductRegister() {
                       >
                         <option value="">선택</option>
                         {categories.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
                         ))}
                       </select>
                     </div>
@@ -215,9 +252,7 @@ function ProductRegister() {
                           categories
                             .find((cat) => cat.id === Number(formData.largeCategoryId))
                             ?.children.map((child) => (
-                            <option key={child.id} value={child.id}>
-                              {child.name}
-                            </option>
+                            <option key={child.id} value={child.id}>{child.name}</option>
                           ))}
                       </select>
                     </div>
@@ -239,9 +274,7 @@ function ProductRegister() {
                             .find((cat) => cat.id === Number(formData.largeCategoryId))
                             ?.children.find((child) => child.id === Number(formData.mediumCategoryId))
                             ?.children.map((subChild) => (
-                            <option key={subChild.id} value={subChild.id}>
-                              {subChild.name}
-                            </option>
+                            <option key={subChild.id} value={subChild.id}>{subChild.name}</option>
                           ))}
                       </select>
                       {errors.categoryId && <p className="mt-1 text-sm text-red-600">{errors.categoryId}</p>}
@@ -261,9 +294,7 @@ function ProductRegister() {
                     >
                       <option value="">선택</option>
                       {brands.map((brand) => (
-                        <option key={brand.id} value={brand.id}>
-                          {brand.name}
-                        </option>
+                        <option key={brand.id} value={brand.id}>{brand.name}</option>
                       ))}
                     </select>
                     {errors.brandId && <p className="mt-1 text-sm text-red-600">{errors.brandId}</p>}
@@ -338,23 +369,24 @@ function ProductRegister() {
                     </Link>
                     <button
                       type="submit"
-                      className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition duration-150 ease-in-out"
+                      disabled={uploading}
+                      className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white shadow-sm transition duration-150 ease-in-out ${
+                        uploading ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-600 hover:bg-indigo-700"
+                      }`}
                     >
-                      상품 등록
+                      {uploading ? "등록 중..." : "상품 등록"}
                     </button>
                   </div>
                 </form>
               </div>
             </div>
 
-            {/* Right: 이미지 업로드 및 순서 조정 */}
             <div className="w-1/2 pl-6">
               <div className="bg-white shadow-lg rounded-xl p-8 border border-gray-100 h-[calc(100vh-10rem)] overflow-y-auto">
                 <h2 className="text-2xl font-bold text-gray-900 mb-8">상품 이미지 등록</h2>
-
-                {/* 이미지 순서 조정 */}
+                <ProductImageUploader onImagesChange={handleImagesChange} />
                 {previewImages.length > 0 && (
-                  <div className="mb-6">
+                  <div className="mt-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">이미지 순서 조정</h3>
                     <DragDropContext onDragEnd={handleDragEnd}>
                       <Droppable droppableId="previewImages" direction="horizontal">
@@ -392,10 +424,6 @@ function ProductRegister() {
                     </DragDropContext>
                   </div>
                 )}
-
-                <ProductImageUploader onImagesChange={handleImagesChange} />
-
-                {/* 전체 이미지 미리보기 */}
                 {previewImages.length > 0 && (
                   <div className="mt-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">전체 이미지 미리보기</h3>
@@ -415,7 +443,6 @@ function ProductRegister() {
                     </div>
                   </div>
                 )}
-
                 {errors.images && <p className="mt-2 text-sm text-red-600">{errors.images}</p>}
               </div>
             </div>

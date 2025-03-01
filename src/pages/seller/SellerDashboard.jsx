@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import {Link} from "react-router-dom";
+import {useEffect, useState} from "react";
+import useApiService from "../../services/ApiService.js";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -10,11 +10,12 @@ export default function SellerDashboard() {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [isLastPage, setIsLastPage] = useState(false); // 초기값 false로 수정
+  const {get} = useApiService();
 
   useEffect(() => {
     const fetchSellerProducts = async () => {
       try {
-        const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/seller/products`, {
+        const response = await get(`${VITE_API_BASE_URL}/api/v1/seller/products`, {
           params: {
             page: page,
             size: 20,

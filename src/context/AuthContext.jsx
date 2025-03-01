@@ -8,6 +8,7 @@ const AuthContext = createContext();
 
 const initialState = {
   isLoggedIn: false,
+  accessToken: null,
   user: null,
   role: 'GUEST',
   cartItemCount: 0, // 장바구니 개수 추가
@@ -19,6 +20,7 @@ function authReducer(state, action) {
       return {
         ...state,
         isLoggedIn: true,
+        accessToken: action.payload.accessToken,
         user: action.payload.user,
         role: action.payload.role,
         cartItemCount: action.payload.cartItemCount || 0, // 로그인 시 초기 개수 설정
@@ -27,6 +29,7 @@ function authReducer(state, action) {
       return {
         ...state,
         isLoggedIn: false,
+        accessToken: null,
         user: null,
         role: 'GUEST',
         cartItemCount: 0, // 로그아웃 시 개수 초기화
@@ -43,41 +46,51 @@ function authReducer(state, action) {
 
 export function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(authReducer, initialState, () => {
-    // 초기 상태를 localStorage에서 복구
     const stored = localStorage.getItem('auth');
     return stored ? JSON.parse(stored) : initialState;
   });
 
-  // 상태 변경 시 localStorage에 저장
   useEffect(() => {
-    localStorage.setItem('auth', JSON.stringify(state));
+    try {
+      localStorage.setItem('auth', JSON.stringify(state));
+    } catch (e) {
+      console.error("Failed to save to localStorage:", e);
+    }
   }, [state]);
 
-  // 로그인 시 사용자 정보와 장바구니 개수 가져오기
-  const login = async (user, role) => {
+  const login = async (accessToken, user, role) => {
+    if (!accessToken) {
+      console.warn("No accessToken provided to login");
+    }
+    let cartItemCount = 0;
     try {
       const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/carts/count`, {
         withCredentials: true,
+        headers: { Authorization: `Bearer ${accessToken}` },
       });
-      const cartItemCount = response.data.result || 0;
-      dispatch({ type: 'LOGIN', payload: { user, role, cartItemCount } });
+      cartItemCount = response.data.result || 0;
     } catch (error) {
-      console.error("Error fetching cart count during login:", error);
-      dispatch({ type: 'LOGIN', payload: { user, role, cartItemCount: 0 } });
+      console.error("Cart API error:", error.response?.status, error.message);
     }
+    dispatch({ type: 'LOGIN', payload: { accessToken, user, role, cartItemCount } });
   };
 
   const logout = () => {
+    console.log("Logging out");
     dispatch({ type: 'LOGOUT' });
   };
 
-  // 장바구니 개수 업데이트 함수
   const updateCartCount = async () => {
-    const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/carts/count`, {
-      withCredentials: true,
-    });
-    const cartItemCount = response.data.result || 0;
-    dispatch({ type: 'UPDATE_CART_COUNT', payload: cartItemCount });
+    try {
+      const response = await axios.get(`${VITE_API_BASE_URL}/api/v1/carts/count`, {
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${state.accessToken}` },
+      });
+      const cartItemCount = response.data.result || 0;
+      dispatch({ type: 'UPDATE_CART_COUNT', payload: cartItemCount });
+    } catch (error) {
+      console.error("Error updating cart count:", error);
+    }
   };
 
   return (

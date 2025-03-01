@@ -28,8 +28,9 @@ function Login() {
       });
       if (response.ok) {
         const data = await response.json();
-       
-        login(data.result.nickname, data.result.role);
+
+        console.log(data.result.access_token);
+        login(data.result.access_token, data.result.nickname, data.result.role);
         navigate(data.result.role === 'USER' ? '/home' : '/seller', { replace: true });
       } else {
         const errData = await response.json();
