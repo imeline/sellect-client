@@ -1,30 +1,46 @@
-import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+
+// Context
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+
+// 공통 컴포넌트
 import Navbar from './components/Navbar.jsx';
-import Home from './pages/Home.jsx';
+import Coupons from './components/coupon/Coupons.jsx';
+import PaymentHistory from './components/order/PaymentHistory.jsx';
+import LeaveAccount from './components/LeaveAccount.jsx';
+
+// 인증/사용자 관련 페이지
+import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import Profile from './pages/Profile.jsx';
+import Unauthorized from './pages/Unauthorized.jsx';
+
+// 홈 및 기본 페이지
+import Home from './pages/Home.jsx';
+import NotFound from './pages/NotFound.jsx';
+
+// 상품 관련 페이지 (일반 사용자용)
 import ProductList from './pages/product/ProductList.jsx';
 import ProductDetail from './pages/product/ProductDetail.jsx';
 import Cart from './pages/product/Cart.jsx';
+
+// 주문 관련 페이지
 import OrderList from './pages/order/OrderList.jsx';
-import OrderDetail from "./pages/order/OrderDetail.jsx";
-import CouponDownload from "./pages/coupon/CouponDownload.jsx";
-import Profile from "./pages/Profile.jsx";
-import Coupons from "./components/coupon/Coupons.jsx";
-import ProductRegister from './pages/seller/ProductRegister.jsx';
+import OrderDetail from './pages/order/OrderDetail.jsx';
+import OrderForm from './pages/order/OrderForm.jsx';
+import OrderComplete from './pages/order/OrderComplete.jsx';
+import PaymentSuccess from './pages/order/PaymentSuccess.jsx';
+
+// 쿠폰 관련 페이지
+import CouponDownload from './pages/coupon/CouponDownload.jsx';
+import CouponUpload from './pages/coupon/CouponUpload.jsx';
+
+// 판매자 관련 페이지
 import SellerHome from './pages/seller/SellerHome.jsx';
-import Login from './pages/Login.jsx';
-import {AuthProvider, useAuth} from './context/AuthContext.jsx';
-import Unauthorized from "./pages/Unauthorized.jsx";
-import OrderForm from "./pages/order/OrderForm.jsx";
-import CouponUpload from "./pages/coupon/CouponUpload.jsx";
-import PaymentHistory from "./components/order/PaymentHistory.jsx";
-import LeaveAccount from "./components/LeaveAccount.jsx";
-import PaymentSuccess from "./pages/order/PaymentSuccess.jsx";
-import OrderComplete from "./pages/order/OrderComplete.jsx";
-import SellerDashboard from "./pages/seller/SellerDashboard.jsx";
-import NotFound from "./pages/NotFound.jsx";
-import SellerProductDetail from "./pages/seller/SellerProductDetail.jsx";
-import ProductEdit from "./pages/seller/ProductEdit.jsx";
+import SellerDashboard from './pages/seller/SellerDashboard.jsx';
+import ProductRegister from './pages/seller/ProductRegister.jsx';
+import SellerProductDetail from './pages/seller/SellerProductDetail.jsx';
+import ProductEdit from './pages/seller/ProductEdit.jsx';
 
 function App() {
   return (
