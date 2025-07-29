@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
-import CartOrderItem from "../components/order/OrderItem.jsx";
+import CartOrderItem from "../../components/order/OrderItem.jsx";
 import CouponItem from "../components/CouponItem";
-import PaymentSummary from "../components/order/PaymentSummary";
+import PaymentSummary from "../../components/order/PaymentSummary.jsx";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 

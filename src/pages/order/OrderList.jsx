@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import OrderHeader from "../components/order/OrderHeader.jsx";
-import OrderItem from "../components/order/OrderItem.jsx";
+import OrderHeader from "../../components/order/OrderHeader.jsx";
+import OrderItem from "../../components/order/OrderItem.jsx";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
