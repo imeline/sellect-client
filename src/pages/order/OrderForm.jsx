@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {useLocation, useNavigate} from "react-router-dom";
-import CartOrderItem from "../components/order/OrderItem.jsx";
-import CouponItem from "../components/CouponItem";
-import PaymentSummary from "../components/order/PaymentSummary";
+import OrderItem from "../../components/order/OrderItem.jsx";
+import CouponItem from "../../components/coupon/CouponItem";
+import PaymentSummary from "../../components/order/PaymentSummary.jsx";
 
 const VITE_API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -197,7 +197,7 @@ function OrderForm() {
             <h3 className="text-lg font-semibold text-gray-900 mb-3">주문 상품</h3>
             <div className="flex flex-col gap-4">
               {orderItems.map((item) => (
-                  <CartOrderItem key={item.product_id} item={item}/>
+                  <OrderItem key={item.product_id} item={item}/>
               ))}
             </div>
 

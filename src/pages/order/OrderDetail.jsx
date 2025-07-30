@@ -1,9 +1,9 @@
 import {useParams} from "react-router-dom";
 import {useState, useEffect} from "react";
 import axios from "axios";
-import OrderHeader from "../components/order/OrderHeader.jsx";
-import PaymentSummary from "../components/order/PaymentSummary.jsx";
-import OrderItem from "../components/order/OrderItem.jsx";
+import OrderHeader from "../../components/order/OrderHeader.jsx";
+import PaymentSummary from "../../components/order/PaymentSummary.jsx";
+import OrderItem from "../../components/order/OrderItem.jsx";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // ✅ 환경 변수 사용
 
