@@ -1,1 +1,0 @@
-const deploy_test_2 = "this is a test_2";
